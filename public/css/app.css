@@ -1,0 +1,91 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+}
+
+header {
+    background-color: #343a40;
+    color: white;
+    padding: 1rem;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+    margin: 0 1rem;
+}
+
+header a:hover {
+    text-decoration: underline;
+}
+
+.main {
+    padding: 2rem;
+}
+
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    margin-bottom: 1.5rem;
+    background-color: white;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.card-img {
+    max-width: 100%;
+    height: auto;
+}
+
+.footer {
+    background-color: #343a40;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.pagination {
+    margin: 2rem 0;
+}
+
+.pagination .page-item {
+    margin: 0 0.25rem;
+}
+
+.site-newsletter {
+    background-color: #e9ecef;
+    padding: 2rem;
+    text-align: center;
+}
+
+.site-newsletter input {
+    width: 70%;
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.site-instagram {
+    margin: 2rem 0;
+}
+
+.site-instagram .photo {
+    display: block;
+    margin: 0.5rem;
+}
+
+.site-instagram img {
+    width: 100%;
+    height: auto;
+}

@@ -1,0 +1,32 @@
+{
+  "name": "book-store-app",
+  "version": "1.0.0",
+  "description": "A simple bookstore application",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.10.9",
+    "ejs": "^3.1.6",
+    "body-parser": "^1.19.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "bookstore",
+    "nodejs",
+    "express"
+  ],
+  "author": "Le Chi Hieu",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hieule1704/book-store-nodejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hieule1704/book-store-app/issues"
+  },
+  "homepage": "https://github.com/hieule1704/book-store-app#readme"
+}
