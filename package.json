@@ -1,0 +1,31 @@
+{
+  "name": "book-store-app",
+  "version": "1.0.0",
+  "description": "Simple book store app using NodeJS - Express JS and MongoDB",
+  "main": "app.js",
+  "scripts": {
+    "test": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hieule1704/book-store-app-nodejs.git"
+  },
+  "author": "Hieu Lee",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hieule1704/book-store-app-nodejs/issues"
+  },
+  "homepage": "https://github.com/hieule1704/book-store-app-nodejs#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.15.1",
+    "nodemon": "^3.1.10"
+  }
+}

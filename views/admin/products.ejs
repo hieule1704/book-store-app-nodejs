@@ -1,0 +1,21 @@
+<h2 class="text-center mb-4">Manage Products</h2>
+<div class="row g-4">
+    <% products.forEach(product=> { %>
+        <div class="col-md-4">
+            <div class="card">
+                <img src="/images/uploaded_img/<%= product.image %>" class="card-img-top" alt="<%= product.bookName %>">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <%= product.bookName %>
+                    </h5>
+                    <p>Price: $<%= product.price.toLocaleString('en-US') %>
+                    </p>
+                    <p>Stock: <%= product.stockQuantity %>
+                    </p>
+                    <a href="#" class="btn btn-warning">Edit</a>
+                    <a href="#" class="btn btn-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+        <% }) %>
+</div>

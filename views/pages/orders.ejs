@@ -1,0 +1,36 @@
+<h2 class="text-center mb-4">Your Orders</h2>
+<% if (orders.length) { %>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Products</th>
+                <th>Total Price</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% orders.forEach(order=> { %>
+                <tr>
+                    <td>
+                        <%= order._id %>
+                    </td>
+                    <td>
+                        <%= order.products.map(p=> `${p.product.bookName} (${p.quantity})`).join(', ') %>
+                    </td>
+                    <td>$<%= order.totalPrice.toLocaleString('en-US') %>
+                    </td>
+                    <td>
+                        <%= order.paymentStatus %>
+                    </td>
+                    <td>
+                        <%= order.placedOn %>
+                    </td>
+                </tr>
+                <% }) %>
+        </tbody>
+    </table>
+    <% } else { %>
+        <p class="text-center">No orders yet.</p>
+        <% } %>

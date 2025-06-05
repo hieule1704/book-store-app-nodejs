@@ -1,0 +1,13 @@
+<div class="card">
+    <img src="/images/<%= blog.image %>" class="card-img-top" alt="<%= blog.title %>">
+    <div class="card-body">
+        <h5 class="card-title">
+            <%= blog.title %>
+        </h5>
+        <p class="card-text">By <%= blog.author.authorName %> - <%= blog.createdAt.toLocaleDateString() %>
+        </p>
+        <p class="card-text">
+            <%= blog.content %>
+        </p>
+    </div>
+</div>

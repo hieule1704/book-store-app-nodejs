@@ -1,0 +1,40 @@
+<h2 class="text-center mb-4">Search Results</h2>
+<div class="row g-4">
+    <% if (products.length) { %>
+        <% products.forEach(product=> { %>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <form action="/cart/add" method="POST" class="card shadow product-card">
+                    <a href="/detail/<%= product._id %>"
+                        class="bg-white d-flex justify-content-center align-items-center p-2" style="height: 250px;">
+                        <img src="/images/uploaded_img/<%= product.image %>" alt="<%= product.bookName %>"
+                            class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                    </a>
+                    <div class="card-body d-flex flex-column text-center">
+                        <div title="<%= product.bookName %>" class="mb-2 fw-bold fs-5 line-clamp-2">
+                            <%= product.bookName %>
+                        </div>
+                        <div class="mb-2 text-secondary small">
+                            <span><i class="fa-solid fa-user"></i>
+                                <%= product.author.authorName %>
+                            </span>
+                            <span class="ms-2"><i class="fa-solid fa-building"></i>
+                                <%= product.publisher.publisherName %>
+                            </span>
+                        </div>
+                        <div class="mb-2 text-danger fs-5 fw-bold">$<%= product.price.toLocaleString('en-US') %>
+                        </div>
+                        <input type="hidden" name="productId" value="<%= product._id %>">
+                        <input type="hidden" name="quantity" value="1">
+                        <div class="mt-auto d-flex gap-2">
+                            <button type="submit" name="add_to_cart" class="btn btn-primary w-50">Add to cart</button>
+                            <button type="submit" name="buy_now" formaction="/checkout" formmethod="post"
+                                class="btn btn-success w-50">Buy now</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <% }) %>
+                <% } else { %>
+                    <p class="text-center">No products found for "<%= query %>"</p>
+                    <% } %>
+</div>

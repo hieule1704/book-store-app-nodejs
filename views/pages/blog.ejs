@@ -1,0 +1,18 @@
+<h2 class="text-center mb-4">Blogs</h2>
+<div class="row g-4">
+    <% blogs.forEach(blog=> { %>
+        <div class="col-md-4">
+            <div class="card">
+                <img src="/images/<%= blog.image %>" class="card-img-top" alt="<%= blog.title %>">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <%= blog.title %>
+                    </h5>
+                    <p class="card-text">By <%= blog.author.authorName %>
+                    </p>
+                    <a href="/blog/detail/<%= blog._id %>" class="btn btn-primary">Read More</a>
+                </div>
+            </div>
+        </div>
+        <% }) %>
+</div>

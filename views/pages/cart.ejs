@@ -1,0 +1,32 @@
+<h2 class="text-center mb-4">Your Cart</h2>
+<% if (cartItems.length) { %>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% cartItems.forEach(item=> { %>
+                <tr>
+                    <td>
+                        <%= item.product.bookName %>
+                    </td>
+                    <td>$<%= item.product.price.toLocaleString('en-US') %>
+                    </td>
+                    <td>
+                        <%= item.quantity %>
+                    </td>
+                    <td>$<%= (item.product.price * item.quantity).toLocaleString('en-US') %>
+                    </td>
+                </tr>
+                <% }) %>
+        </tbody>
+    </table>
+    <a href="/checkout" class="btn btn-success w-100 mb-3">Proceed to Checkout</a>
+    <% } else { %>
+        <p class="text-center">Your cart is empty.</p>
+        <% } %>
