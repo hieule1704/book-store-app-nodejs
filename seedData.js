@@ -1,65 +1,91 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const User = require("./models/User");
 const Author = require("./models/Author");
-const Product = require("./models/Product");
 const Publisher = require("./models/Publisher");
-require("dotenv").config();
+const Product = require("./models/Product");
 
 async function seedData() {
-  // Debug: Log the MONGODB_URI to verify it's being loaded
-  console.log("MONGODB_URI:", process.env.MONGODB_URI);
-  await mongoose.connect(process.env.MONGODB_URI);
-  console.log("Connected to MongoDB");
-
   try {
+    await mongoose.connect("mongodb://localhost:27017/bookly_db", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Connected to MongoDB");
+
+    // Clear existing data
+    await User.deleteMany({});
     await Author.deleteMany({});
     await Publisher.deleteMany({});
     await Product.deleteMany({});
 
-    const authors = await Author.insertMany([
-      { authorName: "Mark Manson", profilePicture: "Mark-Manson.jpg" },
-      { authorName: "James Clear", profilePicture: "James-Clear.jpeg" },
-    ]);
-    console.log("Authors seeded");
+    // Create admin user
+    const adminPassword = await bcrypt.hash("admin123", 10);
+    const adminUser = new User({
+      name: "Admin User",
+      email: "admin@bookly.com",
+      password: adminPassword,
+      userType: "admin",
+    });
+    await adminUser.save();
+    console.log("Admin user created");
 
-    const publishers = await Publisher.insertMany([
-      { publisherName: "Jaico", profileImage: "Jaico-publisher.jpeg" },
-      { publisherName: "Penguin", profileImage: "Penguin-publisher.jpeg" },
-    ]);
-    console.log("Publishers seeded");
+    // Create regular user
+    const userPassword = await bcrypt.hash("user123", 10);
+    const regularUser = new User({
+      name: "Regular User",
+      email: "user@bookly.com",
+      password: userPassword,
+      userType: "user",
+    });
+    await regularUser.save();
+    console.log("Regular user created");
 
-    await Product.insertMany([
+    // Create authors
+    const authors = [
+      { authorName: "Mark Manson" },
+      { authorName: "James Clear" },
+    ];
+    const createdAuthors = await Author.insertMany(authors);
+    console.log("Authors created");
+
+    // Create publishers
+    const publishers = [
+      { publisherName: "HarperCollins" },
+      { publisherName: "Penguin Random House" },
+    ];
+    const createdPublishers = await Publisher.insertMany(publishers);
+    console.log("Publishers created");
+
+    // Create products
+    const products = [
       {
-        bookName: "The Subtle Art of Not Giving a F*ck",
-        author: authors[0]._id,
-        publisher: publishers[1]._id,
-        bookDescription: "A counterintuitive approach to living a good life.",
-        tag: "bestseller",
-        publishYear: 2016,
-        totalPage: 224,
+        bookName: "The Subtle Art of Not Giving a Fuck",
+        author: createdAuthors[0]._id,
+        publisher: createdPublishers[0]._id,
         price: 15,
         image: "The Subtle Art of Not Giving a Fuck.jpg",
         stockQuantity: 100,
+        tag: "bestseller",
       },
       {
         bookName: "Atomic Habits",
-        author: authors[1]._id,
-        publisher: publishers[0]._id,
-        bookDescription:
-          "An Easy & Proven Way to Build Good Habits & Break Bad Ones.",
-        tag: "bestseller",
-        publishYear: 2018,
-        totalPage: 320,
+        author: createdAuthors[1]._id,
+        publisher: createdPublishers[1]._id,
         price: 20,
         image: "Atomic Habits.jpg",
-        stockQuantity: 100,
+        stockQuantity: 150,
+        tag: "bestseller",
       },
-    ]);
-    console.log("Products seeded");
+    ];
+    await Product.insertMany(products);
+    console.log("Products created");
+
+    console.log("Database seeded successfully");
+    mongoose.connection.close();
   } catch (err) {
-    console.error("Seeding error:", err);
-  } finally {
-    await mongoose.connection.close();
-    console.log("MongoDB connection closed");
+    console.error("Error seeding data:", err);
+    mongoose.connection.close();
   }
 }
 

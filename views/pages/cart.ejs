@@ -1,32 +1,73 @@
-<h2 class="text-center mb-4">Your Cart</h2>
-<% if (cartItems.length) { %>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Book</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
+<div class="bg-light py-4 mb-4">
+    <div class="container">
+        <h3 class="mb-1">Shopping cart</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Cart</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<section class="container py-5">
+    <h1 class="text-center text-uppercase mb-4">Products added</h1>
+    <div class="row g-4">
+        <% if (cartItems && cartItems.length> 0) { %>
             <% cartItems.forEach(item=> { %>
-                <tr>
-                    <td>
-                        <%= item.product.bookName %>
-                    </td>
-                    <td>$<%= item.product.price.toLocaleString('en-US') %>
-                    </td>
-                    <td>
-                        <%= item.quantity %>
-                    </td>
-                    <td>$<%= (item.product.price * item.quantity).toLocaleString('en-US') %>
-                    </td>
-                </tr>
-                <% }) %>
-        </tbody>
-    </table>
-    <a href="/checkout" class="btn btn-success w-100 mb-3">Proceed to Checkout</a>
-    <% } else { %>
-        <p class="text-center">Your cart is empty.</p>
-        <% } %>
+                <div class="col-md-3 col-sm-6 align-items-stretch">
+                    <div class="card shadow h-100">
+                        <div class="card-header d-flex justify-content-end p-2">
+                            <a href="/cart/delete/<%= item._id %>" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Delete this from cart?');">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                        <div class="bg-white d-flex justify-content-center align-items-center p-2"
+                            style="height: 250px;">
+                            <img src="/images/<%= item.product.image %>" alt="<%= item.product.bookName %>"
+                                class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="fw-bold fs-5 mb-2 line-clamp-2" title="<%= item.product.bookName %>">
+                                <%= item.product.bookName %>
+                            </div>
+                            <div class="mb-2 text-danger fw-bold">$<%= item.product.price.toLocaleString() %>
+                            </div>
+                            <form action="/cart/update" method="post" class="d-flex align-items-center mb-2">
+                                <input type="hidden" name="cart_id" value="<%= item._id %>">
+                                <input type="number" min="1" name="cart_quantity" value="<%= item.quantity %>"
+                                    class="form-control me-2" style="max-width: 80px;">
+                                <input type="submit" name="update_cart" value="Update" class="btn btn-warning btn-sm">
+                            </form>
+                            <div class="sub-total mb-2">Sub total: <span class="fw-bold">$<% const
+                                        subTotal=(item.quantity * item.product.price); %>
+                                        <%= subTotal.toLocaleString() %></span></div>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">Your cart is empty</div>
+                        </div>
+                        <% } %>
+    </div>
+
+    <div class="text-center my-4">
+        <a href="/cart/delete_all" class="btn btn-danger <%= grandTotal > 0 ? '' : 'disabled' %>"
+            onclick="return confirm('Delete all from cart?');">Delete all</a>
+    </div>
+
+    <div class="card mx-auto" style="max-width: 400px;">
+        <div class="card-body text-center">
+            <p class="mb-3 fs-5">Grand total: <span class="fw-bold text-primary">$<%= grandTotal.toLocaleString() %>
+                        </span></p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="/shop" class="btn btn-warning">Continue shopping</a>
+                <a href="/checkout" class="btn btn-primary <%= grandTotal > 0 ? '' : 'disabled' %>">Proceed to
+                    checkout</a>
+            </div>
+        </div>
+    </div>
+</section>

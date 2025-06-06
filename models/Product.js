@@ -12,13 +12,13 @@ const productSchema = new mongoose.Schema({
     ref: "Publisher",
     required: true,
   },
-  bookDescription: { type: String },
-  tag: { type: String },
+  price: { type: Number, required: true },
+  image: { type: String, required: true },
+  stockQuantity: { type: Number, required: true },
   publishYear: { type: Number },
   totalPage: { type: Number },
-  price: { type: Number, required: true, min: 0 },
-  image: { type: String, default: "no-picture-book.jpg" },
-  stockQuantity: { type: Number, default: 100, required: true, min: 0 },
+  bookDescription: { type: String },
+  tag: { type: String },
 });
 
 module.exports = mongoose.model("Product", productSchema);
