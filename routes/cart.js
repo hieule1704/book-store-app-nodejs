@@ -6,14 +6,12 @@ const Order = require("../models/Order");
 
 // Get cart count for the logged-in user
 router.get("/count", async (req, res) => {
-  if (!req.session.userId) {
-    return res.json({ count: 0 });
-  }
+  if (!req.session.userId) return res.status(401).json({ count: 0 });
   try {
-    const count = await Cart.countDocuments({ user: req.session.userId });
-    res.json({ count });
+    const cartCount = await Cart.countDocuments({ user: req.session.userId });
+    res.json({ count: cartCount });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching cart count:", err);
     res.status(500).json({ count: 0 });
   }
 });

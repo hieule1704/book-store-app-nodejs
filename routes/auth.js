@@ -6,7 +6,7 @@ const User = require("../models/User");
 // Login page
 router.get("/login", (req, res) => {
   if (req.session.userId) {
-    return res.redirect("/home");
+    return res.redirect("/books/home");
   }
   res.render("pages/login", {
     pageTitle: "Bookly - Login",
@@ -35,7 +35,7 @@ router.post("/login", async (req, res) => {
     if (user.userType === "admin") {
       return res.redirect("/admin");
     } else {
-      return res.redirect("/home");
+      return res.redirect("/books/home"); // Fixed redirect URL
     }
   } catch (err) {
     console.error(err);
@@ -49,7 +49,7 @@ router.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error(err);
-      return res.redirect("/home");
+      return res.redirect("/books/home"); // Fixed redirect URL
     }
     res.redirect("/login");
   });
@@ -58,7 +58,7 @@ router.get("/logout", (req, res) => {
 // Register page
 router.get("/register", (req, res) => {
   if (req.session.userId) {
-    return res.redirect("/home");
+    return res.redirect("/books/home"); // Fixed redirect URL
   }
   res.render("pages/register", {
     pageTitle: "Bookly - Register",

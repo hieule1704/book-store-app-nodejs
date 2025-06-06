@@ -41,7 +41,7 @@ router.post("/home", async (req, res) => {
       product: product_id,
     });
     if (existingCartItem) {
-      req.session.message = ["Already added to cart!"];
+      req.session.message = ["Already added to cart!"]; // Array format
       return res.redirect("/books/home");
     }
     const cartItem = new Cart({
@@ -50,11 +50,11 @@ router.post("/home", async (req, res) => {
       quantity: parseInt(product_quantity),
     });
     await cartItem.save();
-    req.session.message = ["Product added to cart!"];
+    req.session.message = ["Product added to cart!"]; // Array format
     res.redirect("/books/home");
   } catch (err) {
     console.error(err);
-    req.session.message = ["Error adding to cart"];
+    req.session.message = ["Error adding to cart"]; // Array format
     res.redirect("/books/home");
   }
 });
