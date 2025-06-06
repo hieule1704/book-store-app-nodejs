@@ -1,0 +1,147 @@
+<!-- Product CRUD Section -->
+<section class="container my-5">
+    <h1 class="text-center text-uppercase mb-4">Shop Products</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <form action="/admin/products/add" method="post" enctype="multipart/form-data">
+                        <h3 class="mb-4 text-center text-uppercase">Add Product</h3>
+                        <div class="mb-3">
+                            <input type="text" name="bookName" class="form-control" placeholder="Enter book name"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <select name="author" class="form-select" required>
+                                <option value="">Select author</option>
+                                <% authors.forEach(author=> { %>
+                                    <option value="<%= author._id %>">
+                                        <%= author.authorName %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <select name="publisher" class="form-select" required>
+                                <option value="">Select publisher</option>
+                                <% publishers.forEach(publisher=> { %>
+                                    <option value="<%= publisher._id %>">
+                                        <%= publisher.publisherName %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <textarea name="bookDescription" class="form-control"
+                                placeholder="Enter book description"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" name="tag" class="form-control"
+                                placeholder="Tag (e.g. bestseller, new release, sales)">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" name="publishYear" class="form-control" placeholder="Publish year">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" name="totalPage" class="form-control" placeholder="Total pages">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" min="0" name="price" class="form-control"
+                                placeholder="Enter product price" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" name="image" accept="image/jpg, image/jpeg, image/png"
+                                class="form-control" required>
+                        </div>
+                        <div class="d-grid">
+                            <input type="submit" value="Add Product" class="btn btn-primary">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Show Products -->
+<section class="container mb-5">
+    <div class="row g-4">
+        <% if (products.length> 0) { %>
+            <% products.forEach(product=> { %>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card h-100 text-center shadow">
+                        <img src="/images/uploaded_images/<%= product.image %>" class="card-img-top"
+                            alt="<%= product.bookName %>">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <%= product.bookName %>
+                            </h5>
+                            <p class="mb-1"><strong>Author:</strong>
+                                <%= product.author.authorName %>
+                            </p>
+                            <p class="mb-1"><strong>Publisher:</strong>
+                                <%= product.publisher.publisherName %>
+                            </p>
+                            <p class="mb-1"><strong>Year:</strong>
+                                <%= product.publishYear || 'N/A' %>
+                            </p>
+                            <p class="mb-1"><strong>Pages:</strong>
+                                <%= product.totalPage || 'N/A' %>
+                            </p>
+                            <p class="mb-1"><strong>Tag:</strong>
+                                <%= product.tag || 'None' %>
+                            </p>
+                            <p class="card-text text-danger fw-bold">$<%= product.price %>/-</p>
+                            <a href="/admin/products/update/<%= product._id %>" class="btn btn-warning me-2">Update</a>
+                            <a href="/admin/products/delete/<%= product._id %>" class="btn btn-danger"
+                                onclick="return confirm('Delete this product?');">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">No products added yet!</div>
+                        </div>
+                        <% } %>
+    </div>
+</section>
+
+<!-- Edit Product Modal -->
+<% if (updateProduct) { %>
+    <div class="modal fade show" id="editProductModal" tabindex="-1" aria-modal="true"
+        style="display:block; background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/products/update/<%= updateProduct._id %>" method="post"
+                    enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Product</h5>
+                        <a href="/admin/products" class="btn-close"></a>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="oldImage" value="<%= updateProduct.image %>">
+                        <div class="mb-3 text-center">
+                            <img src="/images/uploaded_images/<%= updateProduct.image %>"
+                                alt="<%= updateProduct.bookName %>" class="img-fluid mb-2" style="max-height:200px;">
+                        </div>
+                        <!-- ... rest of the form ... -->
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="Update" class="btn btn-success">
+                        <a href="/admin/products" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) {
+                window.location.href = '/admin/products';
+            }
+        });
+    </script>
+    <% } %>

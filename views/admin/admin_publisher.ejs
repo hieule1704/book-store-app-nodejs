@@ -1,0 +1,102 @@
+<!-- Publisher CRUD Section -->
+<section class="container my-5">
+    <h1 class="text-center text-uppercase mb-4">Manage Publishers</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <form action="/admin/publishers/add" method="post" enctype="multipart/form-data">
+                        <h3 class="mb-4 text-center text-uppercase">Add Publisher</h3>
+                        <div class="mb-3">
+                            <input type="text" name="publisherName" class="form-control"
+                                placeholder="Enter publisher name" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" name="profileImage" accept="image/jpg, image/jpeg, image/png"
+                                class="form-control">
+                        </div>
+                        <div class="d-grid">
+                            <input type="submit" value="Add Publisher" class="btn btn-primary">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Show Publishers -->
+<section class="container mb-5">
+    <div class="row g-4">
+        <% if (publishers.length> 0) { %>
+            <% publishers.forEach(publisher=> { %>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card h-100 text-center shadow">
+                        <img src="/uploaded_images/<%= publisher.profileImage %>" class="card-img-top"
+                            alt="<%= publisher.publisherName %>">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <%= publisher.publisherName %>
+                            </h5>
+                            <a href="/admin/publishers/update/<%= publisher._id %>"
+                                class="btn btn-warning me-2">Update</a>
+                            <a href="/admin/publishers/delete/<%= publisher._id %>" class="btn btn-danger"
+                                onclick="return confirm('Delete this publisher?');">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">No publishers added yet!</div>
+                        </div>
+                        <% } %>
+    </div>
+</section>
+
+<!-- Edit Publisher Modal -->
+<% if (updatePublisher) { %>
+    <div class="modal fade show" id="editPublisherModal" tabindex="-1" aria-modal="true"
+        style="display:block; background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/publishers/update/<%= updatePublisher._id %>" method="post"
+                    enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Publisher</h5>
+                        <a href="/admin/publishers" class="btn-close"></a>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="oldProfileImage" value="<%= updatePublisher.profileImage %>">
+                        <div class="mb-3 text-center">
+                            <img src="/uploaded_images/<%= updatePublisher.profileImage %>"
+                                alt="<%= updatePublisher.publisherName %>" class="img-fluid mb-2"
+                                style="max-height:200px;">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" name="publisherName" value="<%= updatePublisher.publisherName %>"
+                                class="form-control" required placeholder="Enter publisher name">
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" class="form-control" name="profileImage"
+                                accept="image/jpg, image/jpeg, image/png">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="Update" class="btn btn-success">
+                        <a href="/admin/publishers" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) {
+                window.location.href = '/admin/publishers';
+            }
+        });
+    </script>
+    <% } %>

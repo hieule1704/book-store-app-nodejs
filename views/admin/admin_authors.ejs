@@ -1,0 +1,100 @@
+<!-- Author CRUD Section -->
+<section class="container my-5">
+    <h1 class="text-center text-uppercase mb-4">Manage Authors</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <form action="/admin/authors/add" method="post" enctype="multipart/form-data">
+                        <h3 class="mb-4 text-center text-uppercase">Add Author</h3>
+                        <div class="mb-3">
+                            <input type="text" name="authorName" class="form-control" placeholder="Enter author name"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" name="profilePicture" accept="image/jpg, image/jpeg, image/png"
+                                class="form-control">
+                        </div>
+                        <div class="d-grid">
+                            <input type="submit" value="Add Author" class="btn btn-primary">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Show Authors -->
+<section class="container mb-5">
+    <div class="row g-4">
+        <% if (authors.length> 0) { %>
+            <% authors.forEach(author=> { %>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card h-100 text-center shadow">
+                        <img src="/uploaded_images/<%= author.profilePicture %>" class="card-img-top"
+                            alt="<%= author.authorName %>">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <%= author.authorName %>
+                            </h5>
+                            <a href="/admin/authors/update/<%= author._id %>" class="btn btn-warning me-2">Update</a>
+                            <a href="/admin/authors/delete/<%= author._id %>" class="btn btn-danger"
+                                onclick="return confirm('Delete this author?');">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">No authors added yet!</div>
+                        </div>
+                        <% } %>
+    </div>
+</section>
+
+<!-- Edit Author Modal -->
+<% if (updateAuthor) { %>
+    <div class="modal fade show" id="editAuthorModal" tabindex="-1" aria-modal="true"
+        style="display:block; background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/authors/update/<%= updateAuthor._id %>" method="post"
+                    enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Author</h5>
+                        <a href="/admin/authors" class="btn-close"></a>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="oldProfilePicture" value="<%= updateAuthor.profilePicture %>">
+                        <div class="mb-3 text-center">
+                            <img src="/images/other_resource/<%= updateAuthor.profilePicture %>"
+                                alt="<%= updateAuthor.authorName %>" class="img-fluid mb-2" style="max-height:200px;">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" name="authorName" value="<%= updateAuthor.authorName %>"
+                                class="form-control" required placeholder="Enter author name">
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" class="form-control" name="profilePicture"
+                                accept="image/jpg, image/jpeg, image/png">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="Update" class="btn btn-success">
+                        <a href="/admin/authors" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) {
+                window.location.href = '/admin/authors';
+            }
+        });
+    </script>
+    <% } %>
