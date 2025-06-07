@@ -3,7 +3,7 @@
         <h3 class="mb-1">Checkout</h3>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
+                <li class="breadcrumb-item"><a href="/home">Home</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Checkout</li>
             </ol>
         </nav>
@@ -51,7 +51,7 @@
                     <h4 class="mb-0 text-uppercase">Shipping & Payment</h4>
                 </div>
                 <div class="card-body">
-                    <form action="/checkout" method="post">
+                    <form action="/cart/checkout" method="post">
                         <% if (buyNowProduct) { %>
                             <input type="hidden" name="buy_now" value="1">
                             <input type="hidden" name="product_id" value="<%= buyNowProduct.id %>">
@@ -102,7 +102,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">State / Province</label>
-                                        <input type="text" name="state" required placeholder="e.g. An Giang"
+                                        <input type="text" name="street" required placeholder="e.g. An Giang"
                                             class="form-control">
                                     </div>
                                     <div class="col-md-6">

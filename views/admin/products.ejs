@@ -70,7 +70,7 @@
             <% products.forEach(product=> { %>
                 <div class="col-md-3 col-sm-6">
                     <div class="card h-100 text-center shadow">
-                        <img src="/images/uploaded_images/<%= product.image %>" class="card-img-top"
+                        <img src="/uploaded_images/<%= product.image %>" class="card-img-top"
                             alt="<%= product.bookName %>">
                         <div class="card-body">
                             <h5 class="card-title">
@@ -122,10 +122,60 @@
                     <div class="modal-body">
                         <input type="hidden" name="oldImage" value="<%= updateProduct.image %>">
                         <div class="mb-3 text-center">
-                            <img src="/images/uploaded_images/<%= updateProduct.image %>"
-                                alt="<%= updateProduct.bookName %>" class="img-fluid mb-2" style="max-height:200px;">
+                            <img src="/uploaded_images/<%= updateProduct.image %>" alt="<%= updateProduct.bookName %>"
+                                class="img-fluid mb-2" style="max-height:200px;">
                         </div>
-                        <!-- ... rest of the form ... -->
+                        <div class="mb-3">
+                            <input type="text" name="bookName" class="form-control"
+                                value="<%= updateProduct.bookName %>" required>
+                        </div>
+                        <div class="mb-3">
+                            <select name="author" class="form-select" required>
+                                <% authors.forEach(author=> { %>
+                                    <option value="<%= author._id %>"
+                                        <%=updateProduct.author._id.toString()===author._id.toString() ? 'selected' : ''
+                                        %>>
+                                        <%= author.authorName %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <select name="publisher" class="form-select" required>
+                                <% publishers.forEach(publisher=> { %>
+                                    <option value="<%= publisher._id %>"
+                                        <%=updateProduct.publisher._id.toString()===publisher._id.toString()
+                                        ? 'selected' : '' %>>
+                                        <%= publisher.publisherName %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <textarea name="bookDescription" class="form-control"
+                                placeholder="Enter book description"><%= updateProduct.bookDescription %></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" name="tag" class="form-control" value="<%= updateProduct.tag %>"
+                                placeholder="Tag (e.g. bestseller, new release, sales)">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" name="publishYear" class="form-control"
+                                value="<%= updateProduct.publishYear %>" placeholder="Publish year">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" name="totalPage" class="form-control"
+                                value="<%= updateProduct.totalPage %>" placeholder="Total pages">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" min="0" name="price" class="form-control"
+                                value="<%= updateProduct.price %>" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" name="image" accept="image/jpg, image/jpeg, image/png"
+                                class="form-control">
+                            <small class="text-muted">Leave empty to keep current image</small>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <input type="submit" value="Update" class="btn btn-success">

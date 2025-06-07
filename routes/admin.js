@@ -60,7 +60,7 @@ router.get("/", isAdmin, async (req, res) => {
     // New Messages
     const numberOfMessages = await Message.countDocuments();
 
-    res.render("admin/admin_page", {
+    res.render("admin/page", {
       pageTitle: "Bookly - Admin Dashboard",
       user: res.locals.user,
       totalRevenue: totalRevenueAmount,
@@ -89,7 +89,7 @@ router.get("/products", isAdmin, async (req, res) => {
     const products = await Product.find()
       .populate("author")
       .populate("publisher");
-    res.render("admin/admin_products", {
+    res.render("admin/products", {
       pageTitle: "Admin - Products",
       user: res.locals.user,
       authors,
@@ -193,7 +193,7 @@ router.get("/products/update/:id", isAdmin, async (req, res) => {
     const updateProduct = await Product.findById(req.params.id)
       .populate("author")
       .populate("publisher");
-    res.render("admin/admin_products", {
+    res.render("admin/products", {
       pageTitle: "Admin - Products",
       user: res.locals.user,
       authors,
@@ -265,7 +265,7 @@ router.post(
 router.get("/authors", isAdmin, async (req, res) => {
   try {
     const authors = await Author.find();
-    res.render("admin/admin_authors", {
+    res.render("admin/authors", {
       pageTitle: "Admin - Authors",
       user: res.locals.user,
       authors,
@@ -351,7 +351,7 @@ router.get("/authors/update/:id", isAdmin, async (req, res) => {
   try {
     const authors = await Author.find();
     const updateAuthor = await Author.findById(req.params.id);
-    res.render("admin/admin_authors", {
+    res.render("admin/authors", {
       pageTitle: "Admin - Authors",
       user: res.locals.user,
       authors,
@@ -408,7 +408,7 @@ router.post(
 router.get("/publishers", isAdmin, async (req, res) => {
   try {
     const publishers = await Publisher.find();
-    res.render("admin/admin_publishers", {
+    res.render("admin/publishers", {
       pageTitle: "Admin - Publishers",
       user: res.locals.user,
       publishers,
@@ -496,7 +496,7 @@ router.get("/publishers/update/:id", isAdmin, async (req, res) => {
   try {
     const publishers = await Publisher.find();
     const updatePublisher = await Publisher.findById(req.params.id);
-    res.render("admin/admin_publishers", {
+    res.render("admin/publishers", {
       pageTitle: "Admin - Publishers",
       user: res.locals.user,
       publishers,

@@ -6,12 +6,14 @@ const Order = require("../models/Order");
 
 // Get cart count for the logged-in user
 router.get("/count", async (req, res) => {
-  if (!req.session.userId) return res.status(401).json({ count: 0 });
+  if (!req.session.userId) {
+    return res.json({ count: 0 });
+  }
   try {
-    const cartCount = await Cart.countDocuments({ user: req.session.userId });
-    res.json({ count: cartCount });
+    const count = await Cart.countDocuments({ user: req.session.userId });
+    res.json({ count });
   } catch (err) {
-    console.error("Error fetching cart count:", err);
+    console.error(err);
     res.status(500).json({ count: 0 });
   }
 });
@@ -195,7 +197,7 @@ router.post("/checkout", async (req, res) => {
 
     if (cartTotal === 0) {
       req.session.message = ["Your cart is empty"];
-      return res.redirect("/checkout");
+      return res.redirect("/cart/checkout");
     }
 
     const existingOrder = await Order.findOne({
@@ -230,11 +232,11 @@ router.post("/checkout", async (req, res) => {
     }
 
     req.session.message = ["Order placed successfully!"];
-    res.redirect("/cart");
+    res.redirect("/orders");
   } catch (err) {
     console.error(err);
     req.session.message = ["Error placing order"];
-    res.redirect("/checkout");
+    res.redirect("/cart/checkout");
   }
 });
 
