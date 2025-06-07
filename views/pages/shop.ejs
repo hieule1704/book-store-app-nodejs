@@ -17,7 +17,7 @@
         <h3 class="mb-1">Our shop</h3>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="/home">Home</a></li>
+                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Shop</li>
             </ol>
         </nav>
@@ -26,7 +26,8 @@
 
 <!-- SEARCH & FILTER FORM -->
 <section class="container mb-4">
-    <form class="row g-2 align-items-end sticky-top bg-white py-2" method="get" action="/shop" style="z-index:10;">
+    <form class="row g-2 align-items-end sticky-top bg-white py-2" method="get" action="/books/shop"
+        style="z-index:10;">
         <div class="col-md-4">
             <label class="form-label mb-1">Search book</label>
             <input type="text" name="search" class="form-control" placeholder="Book name..." value="<%= search %>">
@@ -55,7 +56,7 @@
         </div>
         <div class="col-md-2 d-flex gap-2">
             <button type="submit" class="btn btn-primary w-100">Filter</button>
-            <a href="/shop" class="btn btn-outline-secondary w-100">Reset</a>
+            <a href="/books/shop" class="btn btn-outline-secondary w-100">Reset</a>
         </div>
     </form>
 </section>
@@ -68,7 +69,7 @@
             <% authors.forEach((author, index)=> { %>
                 <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
                     <div class="d-flex justify-content-center align-items-center" style="height: 220px;">
-                        <a href="/shop?author=<%= author._id %>"
+                        <a href="/books/shop?author=<%= author._id %>"
                             class="d-flex flex-column align-items-center text-decoration-none">
                             <div class="rounded-circle overflow-hidden mb-2"
                                 style="width:180px; height:180px; border:4px solid #0d6efd; background:#fff;">
@@ -104,7 +105,7 @@
             <% publishers.forEach((publisher, index)=> { %>
                 <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
                     <div class="d-flex justify-content-center align-items-center" style="height: 220px;">
-                        <a href="/shop?publisher=<%= publisher._id %>"
+                        <a href="/books/shop?publisher=<%= publisher._id %>"
                             class="d-flex flex-column align-items-center text-decoration-none">
                             <div class="rounded-circle overflow-hidden mb-2"
                                 style="width:180px; height:180px; border:4px solid #ffc107; background:#fff;">
@@ -138,8 +139,8 @@
         <% if (products && products.length> 0) { %>
             <% products.forEach(product=> { %>
                 <div class="col-md-3 col-sm-6 mb-4 align-items-stretch">
-                    <form action="/shop" method="post" class="card shadow product-card">
-                        <a href="/detail/<%= product._id %>"
+                    <form action="/books/shop" method="post" class="card shadow product-card">
+                        <a href="/books/detail/<%= product._id %>"
                             class="bg-white d-flex justify-content-center align-items-center p-2"
                             style="height: 250px;">
                             <img src="/uploaded_images/<%= product.image %>" alt="<%= product.bookName %>"
