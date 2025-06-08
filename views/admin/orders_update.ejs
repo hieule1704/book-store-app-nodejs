@@ -1,0 +1,56 @@
+<section class="container my-5">
+    <h1 class="text-center text-uppercase mb-4">Update Order</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <form action="/admin/orders/update/<%= order._id %>" method="post">
+                        <h3 class="mb-4 text-center text-uppercase">Order Details</h3>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>User Email:</strong></label>
+                            <p>
+                                <%= order.user ? order.user.email : 'N/A' %>
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Products:</strong></label>
+                            <ul>
+                                <% if (order.totalProducts) { %>
+                                    <% order.totalProducts.split(', ').forEach(item => { %>
+                                        <% const match = item.match(/^(.+)\s\((\d+)\)$/); %>
+                                        <% if (match) { %>
+                                            <li><%= match[1] %> x <%= match[2] %></li>
+                                        <% } else { %>
+                                            <li><%= item %> (Invalid format)</li>
+                                        <% } %>
+                                    <% }) %>
+                                <% } else { %>
+                                    <li>No products listed</li>
+                                <% } %>
+                            </ul>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Total Price:</strong></label>
+                            <p>$<%= order.totalPrice.toFixed(2) %></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="paymentStatus" class="form-label"><strong>Status:</strong></label>
+                            <select name="paymentStatus" class="form-select" required>
+                                <option value="Pending" <%= order.paymentStatus === ' Pending' ? 'selected' : '' %>
+                                        >Pending</option>
+                                        <option value="Completed" <%=order.paymentStatus==='Completed' ? 'selected' : ''
+                                            %>>Completed</option>
+                                        <option value="Failed" <%=order.paymentStatus==='Failed' ? 'selected' : '' %>
+                                            >Failed</option>
+                                        </select>
+                        </div>
+                        <div class="d-grid gap-2 d-flex justify-content-end">
+                            <input type="submit" value="Update Order" class="btn btn-success">
+                            <a href="/admin/orders" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,5 +1,39 @@
 <section class="container my-5">
     <h1 class="text-center text-uppercase mb-4">Manage Users</h1>
+
+    <!-- Add User Form -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form action="/admin/users/add" method="post">
+                        <h3 class="mb-4 text-center text-uppercase">Add User</h3>
+                        <div class="mb-3">
+                            <input type="text" name="name" class="form-control" placeholder="Enter name" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" name="email" class="form-control" placeholder="Enter email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" name="password" class="form-control" placeholder="Enter password"
+                                required minlength="6">
+                        </div>
+                        <div class="mb-3">
+                            <select name="userType" class="form-select" required>
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="d-grid">
+                            <input type="submit" value="Add User" class="btn btn-primary">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
             <thead class="table-light">
@@ -8,7 +42,6 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>User Type</th>
-                    <th>Registered At</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -29,9 +62,8 @@
                                 <%= user.userType %>
                             </td>
                             <td>
-                                <%= user.createdAt ? user.createdAt.toLocaleString() : '' %>
-                            </td>
-                            <td>
+                                <a href="/admin/users/update/<%= user._id %>"
+                                    class="btn btn-warning btn-sm me-2">Update</a>
                                 <a href="/admin/users/delete/<%= user._id %>" class="btn btn-danger btn-sm"
                                     onclick="return confirm('Delete this user?');">Delete</a>
                             </td>
@@ -46,3 +78,55 @@
         </table>
     </div>
 </section>
+
+<!-- Edit User Modal -->
+<% if (updateUser) { %>
+    <div class="modal fade show" id="editUserModal" tabindex="-1" aria-modal="true"
+        style="display:block; background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/users/update/<%= updateUser._id %>" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update User</h5>
+                        <a href="/admin/users" class="btn-close"></a>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="text" name="name" value="<%= updateUser.name %>" class="form-control" required
+                                placeholder="Enter name">
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" name="email" value="<%= updateUser.email %>" class="form-control"
+                                required placeholder="Enter email">
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" name="password" class="form-control"
+                                placeholder="Enter new password (leave empty to keep current)">
+                            <small class="text-muted">Leave empty to retain current password</small>
+                        </div>
+                        <div class="mb-3">
+                            <select name="userType" class="form-select" required>
+                                <option value="user" <%=updateUser.userType==='user' ? 'selected' : '' %>>User</option>
+                                <option value="admin" <%=updateUser.userType==='admin' ? 'selected' : '' %>>Admin
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="Update" class="btn btn-success">
+                        <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) {
+                window.location.href = '/admin/users';
+            }
+        });
+    </script>
+    <% } %>

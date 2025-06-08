@@ -11,6 +11,7 @@ const User = require("../models/User");
 const Message = require("../models/Message");
 const path = require("path");
 const fs = require("fs");
+const bcrypt = require("bcrypt");
 
 // Middleware to set admin layout for all admin routes
 router.use((req, res, next) => {
@@ -40,7 +41,7 @@ router.get("/", isAdmin, async (req, res) => {
     // Publishers
     const numberOfPublishers = await Publisher.countDocuments();
 
-    // Blogs (if Blog model exists; otherwise, set to 0)
+    // Blogs
     let numberOfBlogs = 0;
     try {
       numberOfBlogs = await Blog.countDocuments();
@@ -60,7 +61,8 @@ router.get("/", isAdmin, async (req, res) => {
     // New Messages
     const numberOfMessages = await Message.countDocuments();
 
-    res.render("admin/page", {
+    res.render("admin/dashboard", {
+      // Changed from "page" to "dashboard"
       pageTitle: "Bookly - Admin Dashboard",
       user: res.locals.user,
       totalRevenue: totalRevenueAmount,
@@ -77,97 +79,6 @@ router.get("/", isAdmin, async (req, res) => {
   } catch (err) {
     console.error("Error fetching dashboard stats:", err);
     req.session.message = ["Error fetching dashboard data"];
-    res.redirect("/admin");
-  }
-});
-
-// Statistics Page
-router.get("/statistics", isAdmin, async (req, res) => {
-  try {
-    // Monthly revenue (last 6 months)
-    const monthlyRevenue = await Order.aggregate([
-      {
-        $match: {
-          createdAt: {
-            $gte: new Date(new Date().setMonth(new Date().getMonth() - 6)),
-          },
-        },
-      },
-      {
-        $group: {
-          _id: { $month: "$createdAt" },
-          total: { $sum: "$totalPrice" },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
-
-    // Top 5 products by quantity sold
-    const topProducts = await Order.aggregate([
-      { $unwind: "$products" },
-      {
-        $group: {
-          _id: "$products.product",
-          totalQuantity: { $sum: "$products.quantity" },
-        },
-      },
-      { $sort: { totalQuantity: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "products",
-          localField: "_id",
-          foreignField: "_id",
-          as: "product",
-        },
-      },
-      { $unwind: "$product" },
-      {
-        $project: {
-          bookName: "$product.bookName",
-          totalQuantity: 1,
-        },
-      },
-    ]);
-
-    // Format monthly revenue for Chart.js
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const revenueData = Array(6).fill(0);
-    monthlyRevenue.forEach((item) => {
-      revenueData[item._id - 1] = item.total;
-    });
-
-    res.render("admin/statistics", {
-      pageTitle: "Admin - Statistics",
-      user: res.locals.user,
-      monthlyRevenue: {
-        labels: months.slice(
-          new Date().getMonth() - 5,
-          new Date().getMonth() + 1
-        ),
-        data: revenueData.slice(
-          new Date().getMonth() - 5,
-          new Date().getMonth() + 1
-        ),
-      },
-      topProducts,
-    });
-  } catch (err) {
-    console.error("Error fetching statistics:", err);
-    req.session.message = ["Error fetching statistics data"];
     res.redirect("/admin");
   }
 });
@@ -778,9 +689,7 @@ router.get("/blogs/delete/:id", isAdmin, async (req, res) => {
 // Orders Page
 router.get("/orders", isAdmin, async (req, res) => {
   try {
-    const orders = await Order.find()
-      .populate("user")
-      .populate("products.product");
+    const orders = await Order.find().populate("user");
     res.render("admin/orders", {
       pageTitle: "Admin - Orders",
       user: res.locals.user,
@@ -796,9 +705,7 @@ router.get("/orders", isAdmin, async (req, res) => {
 // Update Order - Show Form
 router.get("/orders/update/:id", isAdmin, async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id)
-      .populate("user")
-      .populate("products.product");
+    const order = await Order.findById(req.params.id).populate("user");
     if (!order) {
       req.session.message = ["Order not found"];
       return res.redirect("/admin/orders");
@@ -819,19 +726,84 @@ router.get("/orders/update/:id", isAdmin, async (req, res) => {
 router.post("/orders/update/:id", isAdmin, async (req, res) => {
   try {
     const { paymentStatus } = req.body;
-    const validStatuses = [
-      "Pending",
-      "Processing",
-      "Shipped",
-      "Delivered",
-      "Cancelled",
-    ];
+    const validStatuses = ["Pending", "Completed", "Failed"];
     if (!validStatuses.includes(paymentStatus)) {
       req.session.message = ["Invalid status"];
       return res.redirect("/admin/orders");
     }
 
-    await Order.findByIdAndUpdate(req.params.id, { paymentStatus });
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      req.session.message = ["Order not found"];
+      return res.redirect("/admin/orders");
+    }
+
+    // If transitioning from Pending to Completed, update stock
+    if (order.paymentStatus === "Pending" && paymentStatus === "Completed") {
+      if (!order.totalProducts) {
+        req.session.message = ["No products listed in order"];
+        return res.redirect("/admin/orders");
+      }
+
+      // Parse totalProducts (e.g., "The Day That Turns Your Life Around (1), 1984 (2)")
+      const items = order.totalProducts.split(", ");
+      const productUpdates = [];
+
+      for (const item of items) {
+        // Match "BookName (Quantity)"
+        const match = item.match(/^(.+)\s\((\d+)\)$/);
+        if (!match) {
+          req.session.message = [`Invalid product format: ${item}`];
+          return res.redirect("/admin/orders");
+        }
+
+        const bookName = match[1].trim();
+        const quantity = parseInt(match[2]);
+
+        if (isNaN(quantity) || quantity <= 0) {
+          req.session.message = [
+            `Invalid quantity for ${bookName}: ${match[2]}`,
+          ];
+          return res.redirect("/admin/orders");
+        }
+
+        const product = await Product.findOne({ bookName });
+        if (!product) {
+          req.session.message = [`Product not found: ${bookName}`];
+          return res.redirect("/admin/orders");
+        }
+
+        if (product.stockQuantity < quantity) {
+          req.session.message = [
+            `Insufficient stock for ${bookName}: ${product.stockQuantity} available`,
+          ];
+          return res.redirect("/admin/orders");
+        }
+
+        productUpdates.push({
+          productId: product._id,
+          quantity,
+        });
+      }
+
+      // Update stock quantities
+      for (const update of productUpdates) {
+        const result = await Product.findByIdAndUpdate(update.productId, {
+          $inc: { stockQuantity: -update.quantity },
+        });
+        console.log(
+          `Updated stock for product ${update.productId}: deducted ${update.quantity}`
+        );
+      }
+    }
+
+    // Update order status
+    const result = await Order.findByIdAndUpdate(
+      req.params.id,
+      { paymentStatus },
+      { new: true }
+    );
+    console.log(`Updated order ${req.params.id}: new status ${paymentStatus}`);
     req.session.message = ["Order updated successfully!"];
     res.redirect("/admin/orders");
   } catch (err) {
@@ -850,6 +822,7 @@ router.get("/orders/delete/:id", isAdmin, async (req, res) => {
       return res.redirect("/admin/orders");
     }
     await Order.findByIdAndDelete(req.params.id);
+    console.log(`Deleted order ${req.params.id}`);
     req.session.message = ["Order deleted successfully!"];
     res.redirect("/admin/orders");
   } catch (err) {
@@ -867,11 +840,134 @@ router.get("/users", isAdmin, async (req, res) => {
       pageTitle: "Admin - Users",
       user: res.locals.user,
       users,
+      updateUser: null,
     });
   } catch (err) {
     console.error("Error fetching users:", err);
     req.session.message = ["Error fetching users"];
     res.redirect("/admin");
+  }
+});
+
+// Add User
+router.post("/users/add", isAdmin, async (req, res) => {
+  try {
+    const { name, email, password, userType } = req.body;
+
+    // Validate inputs
+    if (!name || !email || !password || !userType) {
+      req.session.message = ["All fields are required"];
+      return res.redirect("/admin/users");
+    }
+    if (password.length < 6) {
+      req.session.message = ["Password must be at least 6 characters"];
+      return res.redirect("/admin/users");
+    }
+    if (!["user", "admin"].includes(userType)) {
+      req.session.message = ["Invalid user type"];
+      return res.redirect("/admin/users");
+    }
+
+    // Check if email exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      req.session.message = ["Email already exists"];
+      return res.redirect("/admin/users");
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      userType,
+    });
+    await user.save();
+
+    req.session.message = ["User added successfully!"];
+    res.redirect("/admin/users");
+  } catch (err) {
+    console.error("Error adding user:", err);
+    req.session.message = ["Error adding user"];
+    res.redirect("/admin/users");
+  }
+});
+
+// Update User - Show Form
+router.get("/users/update/:id", isAdmin, async (req, res) => {
+  try {
+    const users = await User.find();
+    const updateUser = await User.findById(req.params.id);
+    if (!updateUser) {
+      req.session.message = ["User not found"];
+      return res.redirect("/admin/users");
+    }
+    res.render("admin/users", {
+      pageTitle: "Admin - Users",
+      user: res.locals.user,
+      users,
+      updateUser,
+    });
+  } catch (err) {
+    console.error("Error fetching update user page:", err);
+    req.session.message = ["Error fetching user data"];
+    res.redirect("/admin/users");
+  }
+});
+
+// Update User - Handle Form Submission
+router.post("/users/update/:id", isAdmin, async (req, res) => {
+  try {
+    const { name, email, password, userType } = req.body;
+
+    // Validate inputs
+    if (!name || !email || !userType) {
+      req.session.message = ["Name, email, and user type are required"];
+      return res.redirect("/admin/users");
+    }
+    if (!["user", "admin"].includes(userType)) {
+      req.session.message = ["Invalid user type"];
+      return res.redirect("/admin/users");
+    }
+
+    // Check if email is taken by another user
+    const existingUser = await User.findOne({
+      email,
+      _id: { $ne: req.params.id },
+    });
+    if (existingUser) {
+      req.session.message = ["Email already exists"];
+      return res.redirect("/admin/users");
+    }
+
+    // Prepare update data
+    const updateData = { name, email, userType };
+    if (password && password.length >= 6) {
+      updateData.password = await bcrypt.hash(password, 10);
+    } else if (password && password.length < 6) {
+      req.session.message = ["Password must be at least 6 characters"];
+      return res.redirect("/admin/users");
+    }
+
+    // Prevent demoting the current admin
+    if (
+      req.params.id === res.locals.user._id.toString() &&
+      userType !== "admin"
+    ) {
+      req.session.message = ["Cannot change your own user type to non-admin"];
+      return res.redirect("/admin/users");
+    }
+
+    await User.findByIdAndUpdate(req.params.id, updateData);
+    req.session.message = ["User updated successfully!"];
+    res.redirect("/admin/users");
+  } catch (err) {
+    console.error("Error updating user:", err);
+    req.session.message = ["Error updating user"];
+    res.redirect("/admin/users");
   }
 });
 
