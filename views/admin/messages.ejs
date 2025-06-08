@@ -1,45 +1,45 @@
 <section class="container my-5">
-    <h1 class="text-center text-uppercase mb-4">Manage Users</h1>
+    <h1 class="text-center text-uppercase mb-4">Messages</h1>
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
             <thead class="table-light">
                 <tr>
                     <th>#</th>
-                    <th>Name</th>
+                    <th>Sender</th>
                     <th>Email</th>
-                    <th>User Type</th>
-                    <th>Registered At</th>
+                    <th>Message</th>
+                    <th>Sent At</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <% if (users.length> 0) { %>
-                    <% users.forEach((user, idx)=> { %>
+                <% if (messages.length> 0) { %>
+                    <% messages.forEach((msg, idx)=> { %>
                         <tr>
                             <td>
                                 <%= idx + 1 %>
                             </td>
                             <td>
-                                <%= user.name || 'N/A' %>
+                                <%= msg.name %>
                             </td>
                             <td>
-                                <%= user.email %>
+                                <%= msg.email %>
                             </td>
                             <td>
-                                <%= user.userType %>
+                                <%= msg.message %>
                             </td>
                             <td>
-                                <%= user.createdAt ? user.createdAt.toLocaleString() : '' %>
+                                <%= msg.createdAt ? msg.createdAt.toLocaleString() : '' %>
                             </td>
                             <td>
-                                <a href="/admin/users/delete/<%= user._id %>" class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Delete this user?');">Delete</a>
+                                <a href="/admin/messages/delete/<%= msg._id %>" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Delete this message?');">Delete</a>
                             </td>
                         </tr>
                         <% }) %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="6" class="text-center">No users found!</td>
+                                    <td colspan="6" class="text-center">No messages found!</td>
                                 </tr>
                                 <% } %>
             </tbody>

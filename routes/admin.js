@@ -81,6 +81,97 @@ router.get("/", isAdmin, async (req, res) => {
   }
 });
 
+// Statistics Page
+router.get("/statistics", isAdmin, async (req, res) => {
+  try {
+    // Monthly revenue (last 6 months)
+    const monthlyRevenue = await Order.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(new Date().setMonth(new Date().getMonth() - 6)),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          total: { $sum: "$totalPrice" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Top 5 products by quantity sold
+    const topProducts = await Order.aggregate([
+      { $unwind: "$products" },
+      {
+        $group: {
+          _id: "$products.product",
+          totalQuantity: { $sum: "$products.quantity" },
+        },
+      },
+      { $sort: { totalQuantity: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      { $unwind: "$product" },
+      {
+        $project: {
+          bookName: "$product.bookName",
+          totalQuantity: 1,
+        },
+      },
+    ]);
+
+    // Format monthly revenue for Chart.js
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const revenueData = Array(6).fill(0);
+    monthlyRevenue.forEach((item) => {
+      revenueData[item._id - 1] = item.total;
+    });
+
+    res.render("admin/statistics", {
+      pageTitle: "Admin - Statistics",
+      user: res.locals.user,
+      monthlyRevenue: {
+        labels: months.slice(
+          new Date().getMonth() - 5,
+          new Date().getMonth() + 1
+        ),
+        data: revenueData.slice(
+          new Date().getMonth() - 5,
+          new Date().getMonth() + 1
+        ),
+      },
+      topProducts,
+    });
+  } catch (err) {
+    console.error("Error fetching statistics:", err);
+    req.session.message = ["Error fetching statistics data"];
+    res.redirect("/admin");
+  }
+});
+
 // Products Page
 router.get("/products", isAdmin, async (req, res) => {
   try {
@@ -120,6 +211,7 @@ router.post(
         publishYear,
         totalPage,
         price,
+        stockQuantity, // <-- add this
       } = req.body;
       const image = req.file ? req.file.filename : null;
 
@@ -145,7 +237,7 @@ router.post(
         totalPage: totalPage ? Number(totalPage) : undefined,
         price: Number(price),
         image,
-        stockQuantity: 100,
+        stockQuantity: stockQuantity ? Number(stockQuantity) : 0, // <-- use value from form
       });
       await product.save();
       req.session.message = ["Product added successfully!"];
@@ -225,6 +317,7 @@ router.post(
         totalPage,
         price,
         oldImage,
+        stockQuantity, // <-- add this
       } = req.body;
 
       const updateData = {
@@ -236,6 +329,7 @@ router.post(
         publishYear: publishYear ? Number(publishYear) : undefined,
         totalPage: totalPage ? Number(totalPage) : undefined,
         price: Number(price),
+        stockQuantity: stockQuantity ? Number(stockQuantity) : 0, // <-- use value from form
       };
 
       if (req.file) {
@@ -545,5 +639,301 @@ router.post(
     }
   }
 );
+
+// Blogs Page
+router.get("/blogs", isAdmin, async (req, res) => {
+  try {
+    const blogs = await Blog.find();
+    res.render("admin/blogs", {
+      pageTitle: "Admin - Blogs",
+      user: res.locals.user,
+      blogs,
+      updateBlog: null,
+    });
+  } catch (err) {
+    console.error("Error fetching blogs:", err);
+    req.session.message = ["Error fetching blogs"];
+    res.redirect("/admin");
+  }
+});
+
+// Add Blog
+router.post("/blogs/add", isAdmin, upload.single("image"), async (req, res) => {
+  try {
+    const { title, content } = req.body;
+    const image = req.file ? req.file.filename : null;
+
+    const existingBlog = await Blog.findOne({ title });
+    if (existingBlog) {
+      req.session.message = ["Blog title already exists"];
+      return res.redirect("/admin/blogs");
+    }
+
+    const blog = new Blog({
+      title,
+      content,
+      image,
+      author: res.locals.user._id, // Associate with logged-in admin
+    });
+    await blog.save();
+    req.session.message = ["Blog added successfully!"];
+    res.redirect("/admin/blogs");
+  } catch (err) {
+    console.error("Error adding blog:", err);
+    req.session.message = ["Error adding blog"];
+    res.redirect("/admin/blogs");
+  }
+});
+
+// Update Blog - Show Form
+router.get("/blogs/update/:id", isAdmin, async (req, res) => {
+  try {
+    const blogs = await Blog.find();
+    const updateBlog = await Blog.findById(req.params.id);
+    if (!updateBlog) {
+      req.session.message = ["Blog not found"];
+      return res.redirect("/admin/blogs");
+    }
+    res.render("admin/blogs", {
+      pageTitle: "Admin - Blogs",
+      user: res.locals.user,
+      blogs,
+      updateBlog,
+    });
+  } catch (err) {
+    console.error("Error fetching update blog page:", err);
+    req.session.message = ["Error fetching blog data"];
+    res.redirect("/admin/blogs");
+  }
+});
+
+// Update Blog - Handle Form Submission
+router.post(
+  "/blogs/update/:id",
+  isAdmin,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const { title, content, oldImage } = req.body;
+
+      const updateData = {
+        title,
+        content,
+        updatedAt: Date.now(),
+      };
+
+      if (req.file) {
+        if (oldImage) {
+          const oldImagePath = path.join(
+            __dirname,
+            "../public/uploaded_images/",
+            oldImage
+          );
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+        updateData.image = req.file.filename;
+      }
+
+      await Blog.findByIdAndUpdate(req.params.id, updateData);
+      req.session.message = ["Blog updated successfully!"];
+      res.redirect("/admin/blogs");
+    } catch (err) {
+      console.error("Error updating blog:", err);
+      req.session.message = ["Error updating blog"];
+      res.redirect("/admin/blogs");
+    }
+  }
+);
+
+// Delete Blog
+router.get("/blogs/delete/:id", isAdmin, async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      req.session.message = ["Blog not found"];
+      return res.redirect("/admin/blogs");
+    }
+    if (blog.image) {
+      const imagePath = path.join(
+        __dirname,
+        "../public/uploaded_images/",
+        blog.image
+      );
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+    await Blog.findByIdAndDelete(req.params.id);
+    req.session.message = ["Blog deleted successfully!"];
+    res.redirect("/admin/blogs");
+  } catch (err) {
+    console.error("Error deleting blog:", err);
+    req.session.message = ["Error deleting blog"];
+    res.redirect("/admin/blogs");
+  }
+});
+
+// Orders Page
+router.get("/orders", isAdmin, async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate("user")
+      .populate("products.product");
+    res.render("admin/orders", {
+      pageTitle: "Admin - Orders",
+      user: res.locals.user,
+      orders,
+    });
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    req.session.message = ["Error fetching orders"];
+    res.redirect("/admin");
+  }
+});
+
+// Update Order - Show Form
+router.get("/orders/update/:id", isAdmin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate("user")
+      .populate("products.product");
+    if (!order) {
+      req.session.message = ["Order not found"];
+      return res.redirect("/admin/orders");
+    }
+    res.render("admin/orders_update", {
+      pageTitle: "Admin - Update Order",
+      user: res.locals.user,
+      order,
+    });
+  } catch (err) {
+    console.error("Error fetching update order page:", err);
+    req.session.message = ["Error fetching order data"];
+    res.redirect("/admin/orders");
+  }
+});
+
+// Update Order - Handle Form Submission
+router.post("/orders/update/:id", isAdmin, async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+    const validStatuses = [
+      "Pending",
+      "Processing",
+      "Shipped",
+      "Delivered",
+      "Cancelled",
+    ];
+    if (!validStatuses.includes(paymentStatus)) {
+      req.session.message = ["Invalid status"];
+      return res.redirect("/admin/orders");
+    }
+
+    await Order.findByIdAndUpdate(req.params.id, { paymentStatus });
+    req.session.message = ["Order updated successfully!"];
+    res.redirect("/admin/orders");
+  } catch (err) {
+    console.error("Error updating order:", err);
+    req.session.message = ["Error updating order"];
+    res.redirect("/admin/orders");
+  }
+});
+
+// Delete Order
+router.get("/orders/delete/:id", isAdmin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      req.session.message = ["Order not found"];
+      return res.redirect("/admin/orders");
+    }
+    await Order.findByIdAndDelete(req.params.id);
+    req.session.message = ["Order deleted successfully!"];
+    res.redirect("/admin/orders");
+  } catch (err) {
+    console.error("Error deleting order:", err);
+    req.session.message = ["Error deleting order"];
+    res.redirect("/admin/orders");
+  }
+});
+
+// Users Page
+router.get("/users", isAdmin, async (req, res) => {
+  try {
+    const users = await User.find();
+    res.render("admin/users", {
+      pageTitle: "Admin - Users",
+      user: res.locals.user,
+      users,
+    });
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    req.session.message = ["Error fetching users"];
+    res.redirect("/admin");
+  }
+});
+
+// Delete User
+router.get("/users/delete/:id", isAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      req.session.message = ["User not found"];
+      return res.redirect("/admin/users");
+    }
+    if (user._id.toString() === res.locals.user._id.toString()) {
+      req.session.message = ["Cannot delete your own account"];
+      return res.redirect("/admin/users");
+    }
+    const ordersWithUser = await Order.find({ user: req.params.id });
+    if (ordersWithUser.length > 0) {
+      req.session.message = ["Cannot delete user: Has associated orders"];
+      return res.redirect("/admin/users");
+    }
+    await User.findByIdAndDelete(req.params.id);
+    req.session.message = ["User deleted successfully!"];
+    res.redirect("/admin/users");
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    req.session.message = ["Error deleting user"];
+    res.redirect("/admin/users");
+  }
+});
+
+// Messages Page
+router.get("/messages", isAdmin, async (req, res) => {
+  try {
+    const messages = await Message.find();
+    res.render("admin/messages", {
+      pageTitle: "Admin - Messages",
+      user: res.locals.user,
+      messages,
+    });
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    req.session.message = ["Error fetching messages"];
+    res.redirect("/admin");
+  }
+});
+
+// Delete Message
+router.get("/messages/delete/:id", isAdmin, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+    if (!message) {
+      req.session.message = ["Message not found"];
+      return res.redirect("/admin/messages");
+    }
+    await Message.findByIdAndDelete(req.params.id);
+    req.session.message = ["Message deleted successfully!"];
+    res.redirect("/admin/messages");
+  } catch (err) {
+    console.error("Error deleting message:", err);
+    req.session.message = ["Error deleting message"];
+    res.redirect("/admin/messages");
+  }
+});
 
 module.exports = router;

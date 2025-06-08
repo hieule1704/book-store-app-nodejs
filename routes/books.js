@@ -169,4 +169,19 @@ router.get("/detail/:id", async (req, res) => {
   }
 });
 
+router.get("/about", (req, res) => {
+  if (!req.session.userId) return res.redirect("/login");
+  res.render("pages/about", {
+    pageTitle: "Bookly - About",
+    user: res.locals.user
+  });
+});
+
+router.get("/contact", (req, res) => {
+  if (!req.session.userId) return res.redirect("/login");
+  res.render("pages/contact", {
+    pageTitle: "Bookly - Contact",
+    user: res.locals.user
+  });
+});
 module.exports = router;

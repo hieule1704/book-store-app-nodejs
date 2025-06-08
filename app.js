@@ -106,7 +106,7 @@ const adminRoutes = require("./routes/admin");
 app.use("/", authRoutes); // Authentication routes (login, logout, register)
 app.use("/books", bookRoutes); // Book-related routes (home, shop, detail, etc.)
 app.use("/cart", cartRoutes); // Cart routes
-app.use("/orders", orderRoutes); // Order routes (not implemented yet)
+app.use("/orders", orderRoutes); // Order routes
 app.use("/blogs", blogRoutes); // Blog routes
 app.use("/admin", adminRoutes); // Admin routes
 

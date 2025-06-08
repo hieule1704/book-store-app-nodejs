@@ -240,4 +240,38 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
+// Add this after your other routes
+router.post("/add", async (req, res) => {
+  if (!req.session.userId) return res.redirect("/login");
+  const {
+    product_id,
+    product_name,
+    product_price,
+    product_image,
+    product_quantity,
+  } = req.body;
+  try {
+    let cartItem = await Cart.findOne({
+      user: req.session.userId,
+      product: product_id,
+    });
+    if (cartItem) {
+      cartItem.quantity += parseInt(product_quantity);
+      await cartItem.save();
+    } else {
+      cartItem = new Cart({
+        user: req.session.userId,
+        product: product_id,
+        quantity: parseInt(product_quantity),
+      });
+      await cartItem.save();
+    }
+    req.session.message = ["Product added to cart!"];
+    res.redirect("back");
+  } catch (err) {
+    console.error(err);
+    req.session.message = ["Error adding to cart"];
+    res.redirect("back");
+  }
+});
 module.exports = router;

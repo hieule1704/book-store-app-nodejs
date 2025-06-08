@@ -50,6 +50,10 @@
                                 placeholder="Enter product price" required>
                         </div>
                         <div class="mb-3">
+                            <input type="number" min="0" name="stockQuantity" class="form-control"
+                                placeholder="Stock quantity" required>
+                        </div>
+                        <div class="mb-3">
                             <input type="file" name="image" accept="image/jpg, image/jpeg, image/png"
                                 class="form-control" required>
                         </div>
@@ -90,6 +94,9 @@
                             </p>
                             <p class="mb-1"><strong>Tag:</strong>
                                 <%= product.tag || 'None' %>
+                            </p>
+                            <p class="mb-1"><strong>In stock:</strong>
+                                <%= product.stockQuantity %>
                             </p>
                             <p class="card-text text-danger fw-bold">$<%= product.price %>/-</p>
                             <a href="/admin/products/update/<%= product._id %>" class="btn btn-warning me-2">Update</a>
@@ -170,6 +177,10 @@
                         <div class="mb-3">
                             <input type="number" min="0" name="price" class="form-control"
                                 value="<%= updateProduct.price %>" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" min="0" name="stockQuantity" class="form-control"
+                                value="<%= updateProduct.stockQuantity %>" placeholder="Stock quantity" required>
                         </div>
                         <div class="mb-3">
                             <input type="file" name="image" accept="image/jpg, image/jpeg, image/png"

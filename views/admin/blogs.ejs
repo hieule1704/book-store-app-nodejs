@@ -1,0 +1,113 @@
+<section class="container my-5">
+    <h1 class="text-center text-uppercase mb-4">Manage Blogs</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <form action="/admin/blogs/add" method="post" enctype="multipart/form-data">
+                        <h3 class="mb-4 text-center text-uppercase">Add Blog</h3>
+                        <div class="mb-3">
+                            <input type="text" name="title" class="form-control" placeholder="Blog title" required>
+                        </div>
+                        <div class="mb-3">
+                            <textarea name="content" class="form-control" rows="4" placeholder="Blog content"
+                                required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" name="image" accept="image/jpg, image/jpeg, image/png"
+                                class="form-control">
+                        </div>
+                        <div class="d-grid">
+                            <input type="submit" value="Add Blog" class="btn btn-primary">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Show Blogs -->
+<section class="container mb-5">
+    <div class="row g-4">
+        <% if (blogs.length> 0) { %>
+            <% blogs.forEach(blog=> { %>
+                <div class="col-md-4 col-sm-6">
+                    <div class="card h-100 text-center shadow">
+                        <% if (blog.image) { %>
+                            <img src="/uploaded_images/<%= blog.image %>" class="card-img-top" alt="<%= blog.title %>">
+                            <% } %>
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <%= blog.title %>
+                                    </h5>
+                                    <p class="card-text">
+                                        <%= blog.content.substring(0, 100) %>...
+                                    </p>
+                                    <a href="/admin/blogs/update/<%= blog._id %>"
+                                        class="btn btn-warning me-2">Update</a>
+                                    <a href="/admin/blogs/delete/<%= blog._id %>" class="btn btn-danger"
+                                        onclick="return confirm('Delete this blog?');">Delete</a>
+                                </div>
+                    </div>
+                </div>
+                <% }) %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">No blogs added yet!</div>
+                        </div>
+                        <% } %>
+    </div>
+</section>
+
+<!-- Edit Blog Modal -->
+<% if (updateBlog) { %>
+    <div class="modal fade show" id="editBlogModal" tabindex="-1" aria-modal="true"
+        style="display:block; background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/blogs/update/<%= updateBlog._id %>" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Blog</h5>
+                        <a href="/admin/blogs" class="btn-close"></a>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="oldImage" value="<%= updateBlog.image %>">
+                        <% if (updateBlog.image) { %>
+                            <div class="mb-3 text-center">
+                                <img src="/uploaded_images/<%= updateBlog.image %>" alt="<%= updateBlog.title %>"
+                                    class="img-fluid mb-2" style="max-height:200px;">
+                            </div>
+                            <% } %>
+                                <div class="mb-3">
+                                    <input type="text" name="title" value="<%= updateBlog.title %>" class="form-control"
+                                        required placeholder="Blog title">
+                                </div>
+                                <div class="mb-3">
+                                    <textarea name="content" class="form-control" rows="4" required
+                                        placeholder="Blog content"><%= updateBlog.content %></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="file" class="form-control" name="image"
+                                        accept="image/jpg, image/jpeg, image/png">
+                                    <small class="text-muted">Leave empty to keep current image</small>
+                                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="Update" class="btn btn-success">
+                        <a href="/admin/blogs" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) {
+                window.location.href = '/admin/blogs';
+            }
+        });
+    </script>
+    <% } %>

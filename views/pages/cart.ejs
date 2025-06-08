@@ -18,21 +18,27 @@
                 <div class="col-md-3 col-sm-6 align-items-stretch">
                     <div class="card shadow h-100">
                         <div class="card-header d-flex justify-content-end p-2">
-                            <a href="/books/cart/delete/<%= item._id %>" class="btn btn-sm btn-outline-danger"
+                            <a href="/cart/delete/<%= item._id %>" class="btn btn-sm btn-outline-danger"
                                 onclick="return confirm('Delete this from cart?');">
                                 <i class="fas fa-times"></i>
                             </a>
                         </div>
                         <div class="bg-white d-flex justify-content-center align-items-center p-2"
                             style="height: 250px;">
-                            <img src="/uploaded_images/<%= item.product.image %>" alt="<%= item.product.bookName %>"
-                                class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                            <% if (item.product) { %>
+                                <img src="/uploaded_images/<%= item.product.image %>" alt="<%= item.product.bookName %>"
+                                    class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                <% } else { %>
+                                    <span class="text-danger">Product not found</span>
+                                    <% } %>
                         </div>
                         <div class="card-body d-flex flex-column">
-                            <div class="fw-bold fs-5 mb-2 line-clamp-2" title="<%= item.product.bookName %>">
-                                <%= item.product.bookName %>
+                            <div class="fw-bold fs-5 mb-2 line-clamp-2"
+                                title="<%= item.product ? item.product.bookName : '' %>">
+                                <%= item.product ? item.product.bookName : 'Product not found' %>
                             </div>
-                            <div class="mb-2 text-danger fw-bold">$<%= item.product.price.toLocaleString() %>
+                            <div class="mb-2 text-danger fw-bold">
+                                $<%= item.product ? item.product.price.toLocaleString() : '0' %>
                             </div>
                             <form action="/cart/update" method="post" class="d-flex align-items-center mb-2">
                                 <input type="hidden" name="cart_id" value="<%= item._id %>">
@@ -40,9 +46,10 @@
                                     class="form-control me-2" style="max-width: 80px;">
                                 <input type="submit" name="update_cart" value="Update" class="btn btn-warning btn-sm">
                             </form>
-                            <div class="sub-total mb-2">Sub total: <span class="fw-bold">$<% const
-                                        subTotal=(item.quantity * item.product.price); %>
-                                        <%= subTotal.toLocaleString() %></span></div>
+                            <div class="sub-total mb-2">Sub total: <span class="fw-bold">$
+                                    <% const subTotal=item.product ? (item.quantity * item.product.price) : 0; %>
+                                        <%= subTotal.toLocaleString() %>
+                                </span></div>
                         </div>
                     </div>
                 </div>
