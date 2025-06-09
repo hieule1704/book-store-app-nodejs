@@ -6,6 +6,9 @@ const path = require("path");
 const helmet = require("helmet");
 const { body, validationResult } = require("express-validator");
 const expressLayouts = require("express-ejs-layouts");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const bcrypt = require("bcrypt"); // Explicitly require bcrypt here
 require("dotenv").config();
 
 const app = express();
@@ -19,7 +22,6 @@ require("./models/Order");
 require("./models/Product");
 require("./models/Publisher");
 const User = require("./models/User");
-
 
 // Middleware
 app.use(helmet());
@@ -36,37 +38,92 @@ app.set("layout", "layouts/main"); // Set default layout for EJS
 // Session setup
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-secret-key", // Fallback secret if not set in .env
+    secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI || "mongodb://localhost:27017/bookly",
+      mongoUrl: process.env.MONGODB_URI || "mongodb://localhost:217/bookly",
       collectionName: "sessions",
     }),
     cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
   })
 );
 
+// Passport configuration
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:3000/auth/google/callback",
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      console.log("Google Profile:", profile);
+      try {
+        let user = await User.findOne({ email: profile.emails[0].value });
+        if (!user) {
+          console.log("Creating new user:", profile.emails[0].value);
+          user = new User({
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            password: await bcrypt.hash("google-auth", 10), // Now bcrypt is defined
+            userType: "user",
+          });
+          await user.save();
+          console.log("New user saved:", user._id);
+        } else {
+          console.log("Existing user found:", user._id);
+        }
+        return done(null, user);
+      } catch (err) {
+        console.error("Error in GoogleStrategy:", err);
+        return done(err, null);
+      }
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+});
+
 // User and messages middleware
 app.use(async (req, res, next) => {
   res.locals.messages = req.session.message || [];
   req.session.message = []; // Clear messages after displaying
   res.locals.user = null;
-  if (req.session.userId) {
-    try {
-      const user = await User.findById(req.session.userId);
-      if (user) {
-        res.locals.user = {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          userType: user.userType,
-        };
-      } else {
-        req.session.destroy();
-      }
-    } catch (err) {
-      console.error("Error fetching user:", err);
+  if (req.session.passport && req.session.passport.user) {
+    const user = await User.findById(req.session.passport.user);
+    if (user) {
+      res.locals.user = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        userType: user.userType,
+      };
+    }
+  } else if (req.session.userId) {
+    const user = await User.findById(req.session.userId);
+    if (user) {
+      res.locals.user = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        userType: user.userType,
+      };
+    } else {
       req.session.destroy();
     }
   }
@@ -75,9 +132,13 @@ app.use(async (req, res, next) => {
 
 // Cart count middleware
 app.use(async (req, res, next) => {
-  if (req.session.userId) {
+  if (
+    req.session.userId ||
+    (req.session.passport && req.session.passport.user)
+  ) {
     try {
-      const cartCount = await Cart.countDocuments({ user: req.session.userId });
+      const userId = req.session.userId || req.session.passport.user;
+      const cartCount = await Cart.countDocuments({ user: userId });
       res.locals.cartCount = cartCount;
     } catch (err) {
       console.error("Error fetching cart count:", err);
@@ -101,8 +162,6 @@ const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/orders");
 const blogRoutes = require("./routes/blogs");
 const adminRoutes = require("./routes/admin");
-
-// In app.js, keep the existing setup and add this after the routes import
 const authRoutes = require("./routes/auth");
 
 // Override layout for login and register routes
@@ -114,12 +173,12 @@ app.use((req, res, next) => {
 });
 
 // Mount routes with specific prefixes to avoid conflicts
-app.use("/", authRoutes); // Authentication routes (login, logout, register)
-app.use("/books", bookRoutes); // Book-related routes (home, shop, detail, etc.)
-app.use("/cart", cartRoutes); // Cart routes
-app.use("/orders", orderRoutes); // Order routes
-app.use("/blogs", blogRoutes); // Blog routes
-app.use("/admin", adminRoutes); // Admin routes
+app.use("/", authRoutes);
+app.use("/books", bookRoutes);
+app.use("/cart", cartRoutes);
+app.use("/orders", orderRoutes);
+app.use("/blogs", blogRoutes);
+app.use("/admin", adminRoutes);
 
 // Default route (redirect to /books/home)
 app.get("/", (req, res) => {
@@ -134,12 +193,13 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+// Error handler with more details
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("Error Details:", err.stack);
   res.status(500).render("pages/500", {
     pageTitle: "Bookly - Server Error",
     user: res.locals.user,
+    errorMessage: "Something went wrong on our end. Please try again later.",
   });
 });
 
