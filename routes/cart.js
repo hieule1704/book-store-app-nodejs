@@ -230,7 +230,7 @@ router.post("/checkout", async (req, res) => {
     await order.save();
 
     req.session.message = ["Order placed successfully!"];
-    res.redirect("/orders/orders");
+    res.redirect("/orders");
   } catch (err) {
     console.error("Error placing order:", err);
     req.session.message = ["Error placing order"];
