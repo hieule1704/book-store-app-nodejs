@@ -42,10 +42,14 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI || "mongodb://localhost:217/bookly",
+      mongoUrl: process.env.MONGODB_URI || "mongodb://localhost:27017/bookly",
       collectionName: "sessions",
     }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      secure: true, // Required for HTTPS on Render
+      sameSite: "none", // Required for OAuth callback
+    },
   })
 );
 
@@ -58,7 +62,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/callback",
+      callbackURL:
+        "https://book-store-app-nodejs.onrender.com/auth/google/callback", // Production URL
     },
     async (accessToken, refreshToken, profile, done) => {
       console.log("Google Profile:", profile);
@@ -69,7 +74,7 @@ passport.use(
           user = new User({
             name: profile.displayName,
             email: profile.emails[0].value,
-            password: await bcrypt.hash("google-auth", 10), // Now bcrypt is defined
+            password: await bcrypt.hash("google-auth", 10),
             userType: "user",
           });
           await user.save();
@@ -155,6 +160,20 @@ mongoose
   .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/bookly")
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
+// Google OAuth routes
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  (req, res) => {
+    res.redirect("/books/home"); // Redirect to home after success
+  }
+);
 
 // Routes
 const bookRoutes = require("./routes/books");
