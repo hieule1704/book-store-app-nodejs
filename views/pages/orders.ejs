@@ -1,40 +1,56 @@
-<h2 class="text-center mb-4">Your Orders</h2>
-<% if (orders && orders.length> 0) { %>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Products</th>
-                <th>Total Price</th>
-                <th>Status</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% orders.forEach(order=> { %>
-                <tr>
-                    <td>
-                        <%= order._id %>
-                    </td>
-                    <td>
-                        <% if (order.items && order.items.length> 0) { %>
-                            <%= order.items.map(item=> `${item.product.bookName} (${item.quantity})`).join(', ') %>
-                                <% } else { %>
-                                    No items
-                                    <% } %>
-                    </td>
-                    <td>$<%= order.totalPrice.toLocaleString('en-US') %>
-                    </td>
-                    <td>
-                        <%= order.paymentStatus %>
-                    </td>
-                    <td>
-                        <%= order.placedOn %>
-                    </td>
-                </tr>
-                <% }); %>
-        </tbody>
-    </table>
-    <% } else { %>
-        <p class="text-center">No orders yet.</p>
-        <% } %>
+<div class="bg-light py-4 mb-4">
+    <div class="container">
+        <h3 class="mb-1">Your history orders</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Orders</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<% if (messages && messages.length) { %>
+    <div class="alert alert-warning">
+        <% messages.forEach(msg=> { %>
+            <p>
+                <%= msg %>
+            </p>
+            <% }) %>
+    </div>
+    <% } %>
+        <% if (orders && orders.length> 0) { %>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Products</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(order=> { %>
+                        <tr>
+                            <td>
+                                <%= order._id %>
+                            </td>
+                            <td>
+                                <%= order.totalProducts %>
+                            </td>
+                            <td>$<%= order.totalPrice.toLocaleString('en-US') %>
+                            </td>
+                            <td>
+                                <%= order.paymentStatus %>
+                            </td>
+                            <td>
+                                <%= order.placedOn %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+            <% } else { %>
+                <p class="text-center">No orders yet.</p>
+                <% } %>

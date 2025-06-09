@@ -1,18 +1,50 @@
-<h2 class="text-center mb-4">Blogs</h2>
-<div class="row g-4">
-    <% blogs.forEach(blog=> { %>
-        <div class="col-md-4">
-            <div class="card">
-                <img src="/images/<%= blog.image %>" class="card-img-top" alt="<%= blog.title %>">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <%= blog.title %>
-                    </h5>
-                    <p class="card-text">By <%= blog.author.authorName %>
-                    </p>
-                    <a href="/blog/detail/<%= blog._id %>" class="btn btn-primary">Read More</a>
-                </div>
-            </div>
-        </div>
-        <% }) %>
+<!-- In views/pages/blog.ejs -->
+<div class="bg-light py-4 mb-4">
+    <div class="container">
+        <h3 class="mb-1">Blogs</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Blogs</li>
+            </ol>
+        </nav>
+    </div>
 </div>
+
+<section class="container py-5">
+    <h2 class="text-center mb-4">Blogs</h2>
+    <% if (messages && messages.length) { %>
+        <div class="alert alert-warning">
+            <% messages.forEach(msg=> { %>
+                <p>
+                    <%= msg %>
+                </p>
+                <% }) %>
+        </div>
+        <% } %>
+            <div class="row g-4">
+                <% if (blogs && blogs.length) { %>
+                    <% blogs.forEach(blog=> { %>
+                        <div class="col-md-4">
+                            <div class="card shadow">
+                                <img src="/uploaded_images/<%= blog.image || 'other_resource/no-picture-book.jpg' %>"
+                                    class="card-img-top" alt="<%= blog.title || 'Blog Image' %>">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <%= blog.title || "Untitled Blog" %>
+                                    </h5>
+                                    <p class="card-text">By <%= blog.author ? blog.author.authorName : 'Unknown' %>
+                                    </p>
+                                    <a href="/blogs/blog/blog_detail/<%= blog._id %>" class="btn btn-primary">Read
+                                        More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } else { %>
+                                <div class="col-12">
+                                    <div class="alert alert-info text-center">No blogs available</div>
+                                </div>
+                                <% } %>
+            </div>
+</section>

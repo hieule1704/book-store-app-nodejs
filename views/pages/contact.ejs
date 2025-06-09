@@ -1,3 +1,4 @@
+<!-- In views/pages/contact.ejs -->
 <div class="bg-light py-4 mb-4">
     <div class="container">
         <h3 class="mb-1">Contact us</h3>
@@ -16,7 +17,7 @@
             <div class="card shadow">
                 <div class="card-body">
                     <h3 class="mb-4 text-center text-uppercase">Say something!</h3>
-                    <form action="/contact" method="POST">
+                    <form action="/books/contact" method="POST">
                         <div class="mb-3">
                             <input type="text" name="name" required placeholder="Enter your name" class="form-control">
                         </div>
@@ -29,8 +30,8 @@
                                 class="form-control">
                         </div>
                         <div class="mb-3">
-                            <textarea name="message" class="form-control" placeholder="Enter your message"
-                                rows="5"></textarea>
+                            <textarea name="message" class="form-control" placeholder="Enter your message" rows="5"
+                                required></textarea>
                         </div>
                         <div class="d-grid">
                             <input type="submit" value="Send message" class="btn btn-primary">

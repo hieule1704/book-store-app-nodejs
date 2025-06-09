@@ -4,6 +4,12 @@ const Product = require("../models/Product");
 const Author = require("../models/Author");
 const Publisher = require("../models/Publisher");
 const Cart = require("../models/Cart");
+const Message = require("../models/Message");
+
+// In routes/books.js, add this route
+router.get("/blog", (req, res) => {
+  res.redirect("/blogs/blog");
+});
 
 // GET /home
 router.get("/home", async (req, res) => {
@@ -147,6 +153,32 @@ router.post("/shop", async (req, res) => {
   }
 });
 
+// In routes/books.js, after the GET /shop route
+router.get("/api/search", async (req, res) => {
+  try {
+    const search = req.query.search || "";
+    const filterAuthor = req.query.author || "";
+    const filterPublisher = req.query.publisher || "";
+
+    const query = {};
+    if (search) {
+      query.bookName = { $regex: search, $options: "i" };
+    }
+    if (filterAuthor) {
+      query.author = filterAuthor;
+    }
+    if (filterPublisher) {
+      query.publisher = filterPublisher;
+    }
+
+    const products = await Product.find(query).populate("author publisher");
+    res.json(products);
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).json({ error: "Server Error" });
+  }
+});
+
 // GET /detail/:id
 router.get("/detail/:id", async (req, res) => {
   if (!req.session.userId) return res.redirect("/login");
@@ -169,11 +201,40 @@ router.get("/detail/:id", async (req, res) => {
   }
 });
 
+// In routes/books.js, after the GET /detail/:id route
+router.post("/detail/:id", async (req, res) => {
+  if (!req.session.userId) return res.redirect("/login");
+  const { product_id, product_quantity } = req.body;
+  try {
+    let cartItem = await Cart.findOne({
+      user: req.session.userId,
+      product: product_id,
+    });
+    if (cartItem) {
+      cartItem.quantity += parseInt(product_quantity) || 1;
+      await cartItem.save();
+    } else {
+      cartItem = new Cart({
+        user: req.session.userId,
+        product: product_id,
+        quantity: parseInt(product_quantity) || 1,
+      });
+      await cartItem.save();
+    }
+    req.session.message = ["Product added to cart!"];
+    res.redirect(`/books/detail/${req.params.id}`);
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+    req.session.message = ["Error adding to cart"];
+    res.redirect(`/books/detail/${req.params.id}`);
+  }
+});
+
 router.get("/about", (req, res) => {
   if (!req.session.userId) return res.redirect("/login");
   res.render("pages/about", {
     pageTitle: "Bookly - About",
-    user: res.locals.user
+    user: res.locals.user,
   });
 });
 
@@ -181,7 +242,30 @@ router.get("/contact", (req, res) => {
   if (!req.session.userId) return res.redirect("/login");
   res.render("pages/contact", {
     pageTitle: "Bookly - Contact",
-    user: res.locals.user
+    user: res.locals.user,
   });
 });
+
+// After the GET /contact route
+router.post("/contact", async (req, res) => {
+  if (!req.session.userId) return res.redirect("/login");
+  const { name, email, number, message } = req.body;
+  try {
+    const newMessage = new Message({
+      user: req.session.userId,
+      name,
+      email,
+      number,
+      message,
+    });
+    await newMessage.save();
+    req.session.message = ["Message sent successfully!"];
+    res.redirect("/books/contact");
+  } catch (err) {
+    console.error("Error saving message:", err);
+    req.session.message = ["Error sending message"];
+    res.redirect("/books/contact");
+  }
+});
+
 module.exports = router;

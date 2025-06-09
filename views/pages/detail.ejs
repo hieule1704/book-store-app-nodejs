@@ -36,7 +36,8 @@
                     </div>
                     <div class="text-danger fw-bold fs-3">Price: $<%= product.price.toLocaleString() %>
                     </div>
-                    <form method="POST" action="/cart/add">
+                    <!-- In views/pages/detail.ejs, replace the form -->
+                    <form method="POST" action="/books/detail/<%= product._id %>">
                         <div class="d-flex align-items-center mt-4">
                             <input type="hidden" name="product_id" value="<%= product._id %>">
                             <input type="hidden" name="product_name" value="<%= product.bookName %>">

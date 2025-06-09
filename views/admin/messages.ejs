@@ -8,7 +8,6 @@
                     <th>Sender</th>
                     <th>Email</th>
                     <th>Message</th>
-                    <th>Sent At</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -27,9 +26,6 @@
                             </td>
                             <td>
                                 <%= msg.message %>
-                            </td>
-                            <td>
-                                <%= msg.createdAt ? msg.createdAt.toLocaleString() : '' %>
                             </td>
                             <td>
                                 <a href="/admin/messages/delete/<%= msg._id %>" class="btn btn-danger btn-sm"

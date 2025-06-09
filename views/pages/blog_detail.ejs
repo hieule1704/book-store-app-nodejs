@@ -1,13 +1,43 @@
-<div class="card">
-    <img src="/images/<%= blog.image %>" class="card-img-top" alt="<%= blog.title %>">
-    <div class="card-body">
-        <h5 class="card-title">
-            <%= blog.title %>
-        </h5>
-        <p class="card-text">By <%= blog.author.authorName %> - <%= blog.createdAt.toLocaleDateString() %>
-        </p>
-        <p class="card-text">
-            <%= blog.content %>
-        </p>
+<!-- In views/pages/blog_detail.ejs -->
+<div class="bg-light py-4 mb-4">
+    <div class="container">
+        <h3 class="mb-1">Blog Detail</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
+                <li class="breadcrumb-item"><a href="/blogs/blog">Blogs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <%= blog.title || "Blog Detail" %>
+                </li>
+            </ol>
+        </nav>
     </div>
 </div>
+
+<section class="container py-5">
+    <% if (messages && messages.length) { %>
+        <div class="alert alert-warning">
+            <% messages.forEach(msg=> { %>
+                <p>
+                    <%= msg %>
+                </p>
+                <% }) %>
+        </div>
+        <% } %>
+            <div class="card shadow">
+                <img src="/uploaded_images/<%= blog.image || 'other_resource/no-picture-book.jpg' %>"
+                    class="card-img-top" alt="<%= blog.title || 'Blog Image' %>">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <%= blog.title || "Untitled Blog" %>
+                    </h5>
+                    <p class="card-text">
+                        By <%= blog.author ? blog.author.authorName : 'Unknown' %> -
+                            <%= blog.createdAt ? blog.createdAt.toLocaleDateString() : 'Unknown Date' %>
+                    </p>
+                    <p class="card-text">
+                        <%= blog.content || "No content available." %>
+                    </p>
+                </div>
+            </div>
+</section>

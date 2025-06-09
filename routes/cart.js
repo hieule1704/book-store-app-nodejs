@@ -142,7 +142,6 @@ router.get("/checkout", async (req, res) => {
   }
 });
 
-// Place order
 router.post("/checkout", async (req, res) => {
   if (!req.session.userId) return res.redirect("/login");
   const {
@@ -176,43 +175,51 @@ router.post("/checkout", async (req, res) => {
 
   try {
     if (isBuyNow) {
+      const product = await Product.findById(product_id);
+      if (!product) {
+        req.session.message = ["Product not found"];
+        return res.redirect("/cart");
+      }
+      if (product.stockQuantity < parseInt(product_quantity)) {
+        req.session.message = [`Insufficient stock for ${product.bookName}`];
+        return res.redirect("/cart");
+      }
       cartProducts.push(`${product_name} (${product_quantity})`);
       cartTotal = product_price * product_quantity;
+      await Product.updateOne(
+        { _id: product_id },
+        { $inc: { stockQuantity: -parseInt(product_quantity) } }
+      );
     } else {
       const cartItems = await Cart.find({ user: req.session.userId }).populate(
         "product"
       );
-      if (cartItems.length > 0) {
-        cartProducts = cartItems.map(
-          (item) => `${item.product.bookName} (${item.quantity})`
-        );
-        cartTotal = cartItems.reduce(
-          (total, item) => total + item.product.price * item.quantity,
-          0
+      if (!cartItems.length) {
+        req.session.message = ["Your cart is empty"];
+        return res.redirect("/cart");
+      }
+      for (const item of cartItems) {
+        if (!item.product) {
+          req.session.message = [`Product not found in cart`];
+          return res.redirect("/cart");
+        }
+        if (item.product.stockQuantity < item.quantity) {
+          req.session.message = [
+            `Insufficient stock for ${item.product.bookName}`,
+          ];
+          return res.redirect("/cart");
+        }
+        cartProducts.push(`${item.product.bookName} (${item.quantity})`);
+        cartTotal += item.product.price * item.quantity;
+        await Product.updateOne(
+          { _id: item.product._id },
+          { $inc: { stockQuantity: -item.quantity } }
         );
       }
+      await Cart.deleteMany({ user: req.session.userId });
     }
 
     const totalProducts = cartProducts.join(", ");
-
-    if (cartTotal === 0) {
-      req.session.message = ["Your cart is empty"];
-      return res.redirect("/cart/checkout");
-    }
-
-    const existingOrder = await Order.findOne({
-      name,
-      number,
-      email,
-      method,
-      address,
-      totalProducts,
-      totalPrice: cartTotal,
-    });
-    if (existingOrder) {
-      req.session.message = ["Order already placed!"];
-      return res.redirect("/cart");
-    }
 
     const order = new Order({
       user: req.session.userId,
@@ -227,20 +234,16 @@ router.post("/checkout", async (req, res) => {
     });
     await order.save();
 
-    if (!isBuyNow) {
-      await Cart.deleteMany({ user: req.session.userId });
-    }
-
     req.session.message = ["Order placed successfully!"];
-    res.redirect("/orders");
+    res.redirect("/orders/orders");
   } catch (err) {
-    console.error(err);
+    console.error("Error placing order:", err);
     req.session.message = ["Error placing order"];
     res.redirect("/cart/checkout");
   }
 });
 
-// Add this after your other routes
+// POST /add
 router.post("/add", async (req, res) => {
   if (!req.session.userId) return res.redirect("/login");
   const {
@@ -250,28 +253,41 @@ router.post("/add", async (req, res) => {
     product_image,
     product_quantity,
   } = req.body;
+
   try {
+    // Validate product exists
+    const product = await Product.findById(product_id);
+    if (!product) {
+      req.session.message = ["Product not found"];
+      return res.redirect("/books/shop");
+    }
+
+    // Check or update cart
     let cartItem = await Cart.findOne({
       user: req.session.userId,
       product: product_id,
     });
+
     if (cartItem) {
-      cartItem.quantity += parseInt(product_quantity);
+      cartItem.quantity += parseInt(product_quantity) || 1;
       await cartItem.save();
+      req.session.message = ["Product quantity updated in cart!"];
     } else {
       cartItem = new Cart({
         user: req.session.userId,
         product: product_id,
-        quantity: parseInt(product_quantity),
+        quantity: parseInt(product_quantity) || 1,
       });
       await cartItem.save();
+      req.session.message = ["Product added to cart!"];
     }
-    req.session.message = ["Product added to cart!"];
-    res.redirect("back");
+
+    res.redirect("/books/shop");
   } catch (err) {
-    console.error(err);
+    console.error("Error adding to cart:", err);
     req.session.message = ["Error adding to cart"];
-    res.redirect("back");
+    res.redirect("/books/shop");
   }
 });
+
 module.exports = router;

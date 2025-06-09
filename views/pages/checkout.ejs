@@ -1,9 +1,10 @@
+<!-- In views/pages/checkout.ejs -->
 <div class="bg-light py-4 mb-4">
     <div class="container">
         <h3 class="mb-1">Checkout</h3>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="/home">Home</a></li>
+                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Checkout</li>
             </ol>
         </nav>
@@ -11,118 +12,127 @@
 </div>
 
 <section class="container mb-5">
-    <div class="row g-4 justify-content-center">
-        <div class="col-lg-5">
-            <div class="card shadow border-0">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4 class="mb-0 text-uppercase">Order Summary</h4>
-                </div>
-                <div class="card-body">
-                    <% if (buyNowProduct) { %>
-                        <div class="d-flex justify-content-between border-bottom py-2">
-                            <span>
-                                <%= buyNowProduct.name %>
-                            </span>
-                            <span class="text-secondary">($<%= buyNowProduct.price %> x <%= buyNowProduct.quantity %>
-                                        )</span>
+    <% if (messages && messages.length) { %>
+        <div class="alert <%= messages[0].includes('success') ? 'alert-success' : 'alert-danger' %>">
+            <% messages.forEach(msg=> { %>
+                <p>
+                    <%= msg %>
+                </p>
+                <% }) %>
+        </div>
+        <% } %>
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-5">
+                    <div class="card shadow border-0">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h4 class="mb-0 text-uppercase">Order Summary</h4>
                         </div>
-                        <% } else if (cartItems && cartItems.length> 0) { %>
-                            <% cartItems.forEach(item=> { %>
+                        <div class="card-body">
+                            <% if (buyNowProduct) { %>
                                 <div class="d-flex justify-content-between border-bottom py-2">
                                     <span>
-                                        <%= item.product.bookName %>
+                                        <%= buyNowProduct.name %>
                                     </span>
-                                    <span class="text-secondary">($<%= item.product.price %> x <%= item.quantity %>
-                                                )</span>
+                                    <span class="text-secondary">($<%= buyNowProduct.price %> x <%=
+                                                buyNowProduct.quantity %>)</span>
                                 </div>
-                                <% }); %>
-                                    <% } else { %>
-                                        <div class="alert alert-info text-center my-3">Your cart is empty</div>
-                                        <% } %>
+                                <% } else if (cartItems && cartItems.length> 0) { %>
+                                    <% cartItems.forEach(item=> { %>
+                                        <div class="d-flex justify-content-between border-bottom py-2">
+                                            <span>
+                                                <%= item.product.bookName %>
+                                            </span>
+                                            <span class="text-secondary">($<%= item.product.price %> x <%= item.quantity
+                                                        %>)</span>
+                                        </div>
+                                        <% }); %>
+                                            <% } else { %>
+                                                <div class="alert alert-info text-center my-3">Your cart is empty</div>
+                                                <% } %>
+                        </div>
+                        <div class="card-footer bg-white text-end fs-5">
+                            Grand total: <span class="fw-bold text-primary">$<%= grandTotal.toLocaleString() %></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-footer bg-white text-end fs-5">
-                    Grand total: <span class="fw-bold text-primary">$<%= grandTotal.toLocaleString() %></span>
+                <div class="col-lg-7">
+                    <div class="card shadow border-0">
+                        <div class="card-header bg-success text-white text-center">
+                            <h4 class="mb-0 text-uppercase">Shipping & Payment</h4>
+                        </div>
+                        <div class="card-body">
+                            <form action="/cart/checkout" method="post">
+                                <% if (buyNowProduct) { %>
+                                    <input type="hidden" name="buy_now" value="1">
+                                    <input type="hidden" name="product_id" value="<%= buyNowProduct.id %>">
+                                    <input type="hidden" name="product_name" value="<%= buyNowProduct.name %>">
+                                    <input type="hidden" name="product_price" value="<%= buyNowProduct.price %>">
+                                    <input type="hidden" name="product_image" value="<%= buyNowProduct.image %>">
+                                    <input type="hidden" name="product_quantity" value="<%= buyNowProduct.quantity %>">
+                                    <% } %>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Your name</label>
+                                                <input type="text" name="name" required placeholder="Enter your name"
+                                                    class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Your number</label>
+                                                <input type="text" name="number" required
+                                                    placeholder="Enter your number" class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Your email</label>
+                                                <input type="email" name="email" required placeholder="Enter your email"
+                                                    class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Payment method</label>
+                                                <select name="method" class="form-select">
+                                                    <option value="cash on delivery">Cash on delivery</option>
+                                                    <option value="credit card">Credit card</option>
+                                                    <option value="paypal">Paypal</option>
+                                                    <option value="paytm">Paytm</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Flat number</label>
+                                                <input type="number" min="0" name="flat" required
+                                                    placeholder="e.g. Flat No. 1" class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Street name</label>
+                                                <input type="text" name="street" required placeholder="e.g. Vo Thi Sau"
+                                                    class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">City</label>
+                                                <input type="text" name="city" required placeholder="e.g. Long Xuyen"
+                                                    class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">State / Province</label>
+                                                <input type="text" name="state" required placeholder="e.g. An Giang"
+                                                    class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Country</label>
+                                                <input type="text" name="country" required placeholder="e.g. Vietnam"
+                                                    class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Postal code</label>
+                                                <input type="number" min="0" name="pin_code" required
+                                                    placeholder="e.g. 90000" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="d-grid mt-4">
+                                            <input type="submit" value="Order now" class="btn btn-success btn-lg"
+                                                name="order_btn" <%=grandTotal===0 ? 'disabled' : '' %>>
+                                        </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-7">
-            <div class="card shadow border-0">
-                <div class="card-header bg-success text-white text-center">
-                    <h4 class="mb-0 text-uppercase">Shipping & Payment</h4>
-                </div>
-                <div class="card-body">
-                    <form action="/cart/checkout" method="post">
-                        <% if (buyNowProduct) { %>
-                            <input type="hidden" name="buy_now" value="1">
-                            <input type="hidden" name="product_id" value="<%= buyNowProduct.id %>">
-                            <input type="hidden" name="product_name" value="<%= buyNowProduct.name %>">
-                            <input type="hidden" name="product_price" value="<%= buyNowProduct.price %>">
-                            <input type="hidden" name="product_image" value="<%= buyNowProduct.image %>">
-                            <input type="hidden" name="product_quantity" value="<%= buyNowProduct.quantity %>">
-                            <% } %>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Your name</label>
-                                        <input type="text" name="name" required placeholder="Enter your name"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Your number</label>
-                                        <input type="text" name="number" required placeholder="Enter your number"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Your email</label>
-                                        <input type="email" name="email" required placeholder="Enter your email"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Payment method</label>
-                                        <select name="method" class="form-select">
-                                            <option value="cash on delivery">Cash on delivery</option>
-                                            <option value="credit card">Credit card</option>
-                                            <option value="paypal">Paypal</option>
-                                            <option value="paytm">Paytm</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Flat number</label>
-                                        <input type="number" min="0" name="flat" required placeholder="e.g. Flat No. 1"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Street name</label>
-                                        <input type="text" name="street" required placeholder="e.g. Vo Thi Sau"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">City</label>
-                                        <input type="text" name="city" required placeholder="e.g. Long Xuyen"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">State / Province</label>
-                                        <input type="text" name="street" required placeholder="e.g. An Giang"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Country</label>
-                                        <input type="text" name="country" required placeholder="e.g. Vietnam"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Postal code</label>
-                                        <input type="number" min="0" name="pin_code" required placeholder="e.g. 90000"
-                                            class="form-control">
-                                    </div>
-                                </div>
-                                <div class="d-grid mt-4">
-                                    <input type="submit" value="Order now" class="btn btn-success btn-lg"
-                                        name="order_btn" <%=grandTotal===0 ? 'disabled' : '' %>>
-                                </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 </section>

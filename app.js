@@ -20,6 +20,7 @@ require("./models/Product");
 require("./models/Publisher");
 const User = require("./models/User");
 
+
 // Middleware
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
@@ -98,9 +99,19 @@ mongoose
 const bookRoutes = require("./routes/books");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/orders");
-const authRoutes = require("./routes/auth");
 const blogRoutes = require("./routes/blogs");
 const adminRoutes = require("./routes/admin");
+
+// In app.js, keep the existing setup and add this after the routes import
+const authRoutes = require("./routes/auth");
+
+// Override layout for login and register routes
+app.use((req, res, next) => {
+  if (req.path === "/login" || req.path === "/register") {
+    res.locals.layout = "layouts/minimal";
+  }
+  next();
+});
 
 // Mount routes with specific prefixes to avoid conflicts
 app.use("/", authRoutes); // Authentication routes (login, logout, register)

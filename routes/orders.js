@@ -5,20 +5,27 @@ const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 const { body, validationResult } = require("express-validator"); // Add this import
 
-router.get("/checkout", async (req, res) => {
+// In routes/orders.js, replace the GET /orders route
+router.get("/orders", async (req, res) => {
   if (!req.session.userId) return res.redirect("/login");
   try {
-    const cartItems = await Cart.find({ user: req.session.userId }).populate(
-      "product"
-    );
-    res.render("pages/checkout", {
-      pageTitle: "Bookly - Checkout",
-      cartItems,
+    const orders = await Order.find({ user: req.session.userId }).sort({
+      placedOn: -1,
+    });
+    res.render("pages/orders", {
+      pageTitle: "Bookly - Orders",
+      orders,
       user: res.locals.user,
+      messages: orders.length ? [] : ["No orders found"],
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
+    console.error("Error fetching orders:", err);
+    res.render("pages/orders", {
+      pageTitle: "Bookly - Orders",
+      orders: [],
+      user: res.locals.user,
+      messages: ["Error loading orders"],
+    });
   }
 });
 
@@ -82,22 +89,5 @@ router.post(
     }
   }
 );
-
-router.get("/orders", async (req, res) => {
-  if (!req.session.userId) return res.redirect("/login");
-  try {
-    const orders = await Order.find({ user: req.session.userId }).populate(
-      "products.product"
-    );
-    res.render("pages/orders", {
-      pageTitle: "Bookly - Orders",
-      orders,
-      user: res.locals.user,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
-  }
-});
 
 module.exports = router;

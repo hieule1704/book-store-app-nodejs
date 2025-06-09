@@ -69,7 +69,7 @@ bookly/
 
 1. Clone the repository:
    ```
-   git clone <repository-url>
+   git clone https://github.com/hieule1704/book-store-app-nodejs
    ```
 2. Navigate to the project directory:
    ```
@@ -93,7 +93,3 @@ The application will be available at `http://localhost:3000`.
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or features.
-
-## License
-
-This project is licensed under the MIT License.
