@@ -20,7 +20,7 @@
 </head>
 
 <body>
-    <%- include('../partials/header') %>
+    <%- include('../partials/header', { cartCount: typeof cartCount !=='undefined' ? cartCount : 0 }) %>
 
         <main class="container mt-4">
             <%- body %>

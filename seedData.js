@@ -468,19 +468,21 @@ async function seedData() {
       {
         title: "The Power of Habit",
         content:
-          "A deep dive into how habits shape our lives and how to change them.",
+          "A deep dive into how habits shape our lives and how to change them. Habits are the invisible architecture of daily life, influencing everything from our productivity to our health. This exploration uncovers the science behind habit formation, revealing how small, consistent actions can lead to profound transformations over time. We’ll examine the habit loop—cue, routine, reward—and how it drives behavior, drawing from real-world examples and psychological research. Learn practical strategies to break bad habits, such as procrastination or overeating, and build positive ones, like regular exercise or mindful reading. With insights into the brain’s plasticity and the role of willpower, this guide empowers you to take control of your routines and create a life aligned with your goals.",
         summary: "Learn to master your habits.",
         author: authorIdMap.get(4), // James Clear
       },
       {
         title: "Mindfulness in Daily Life",
-        content: "Simple techniques to stay present and reduce stress.",
+        content:
+          "Simple techniques to stay present and reduce stress. Mindfulness is more than a buzzword—it’s a powerful practice that can transform how you experience each moment. This guide introduces beginner-friendly methods like focused breathing, body scans, and mindful walking, explaining how to integrate them into a busy schedule. We delve into the benefits of mindfulness, including reduced anxiety, improved focus, and better emotional regulation, backed by studies from neuroscience and psychology. You’ll discover how to handle distractions, manage overwhelming emotions, and cultivate a sense of calm amid chaos. With step-by-step exercises and tips for consistency, this content offers a roadmap to a more peaceful and intentional life.",
         summary: "Stay mindful every day.",
         author: authorIdMap.get(3), // Joseph Nguyen
       },
       {
         title: "Leadership Lessons",
-        content: "Key lessons on leading teams and inspiring others.",
+        content:
+          "Key lessons on leading teams and inspiring others. Effective leadership is a skill that can be honed through experience and reflection, and this piece explores the core principles that define great leaders. From building trust with your team to navigating conflict with grace, we cover strategies like active listening, setting clear goals, and fostering a culture of accountability. Drawing from historical figures and modern business leaders, we analyze how resilience, empathy, and decisive action shape successful leadership. You’ll also learn how to motivate others during challenging times, delegate effectively, and inspire innovation, making this a comprehensive resource for anyone looking to step up as a leader in their community or workplace.",
         summary: "Become a better leader.",
         author: authorIdMap.get(5), // Jordan Peterson
       },
