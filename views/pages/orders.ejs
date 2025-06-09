@@ -28,6 +28,7 @@
                         <th>Total Price</th>
                         <th>Status</th>
                         <th>Date</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,6 +47,15 @@
                             </td>
                             <td>
                                 <%= order.placedOn %>
+                            </td>
+                            <td>
+                                <% if (order.paymentStatus==='Completed' ) { %>
+                                    <a href="/orders/detail/<%= order._id %>" class="btn btn-success btn-sm">View
+                                        Receipt</a>
+                                    <% } else if (order.paymentStatus==='Pending' ) { %>
+                                        <a href="/orders/cancel/<%= order._id %>" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Are you sure you want to cancel this order?')">Cancel</a>
+                                        <% } %>
                             </td>
                         </tr>
                         <% }) %>

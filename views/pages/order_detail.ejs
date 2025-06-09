@@ -1,0 +1,52 @@
+<div class="bg-light py-4 mb-4">
+    <div class="container">
+        <h3 class="mb-1">Order Receipt</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/books/home">Home</a></li>
+                <li class="breadcrumb-item"><a href="/orders/orders">Orders</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Receipt</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container my-5">
+    <% if (order) { %>
+        <div class="card p-4">
+            <h4 class="card-title">Order Details</h4>
+            <p><strong>Order ID:</strong>
+                <%= order._id %>
+            </p>
+            <p><strong>Name:</strong>
+                <%= order.name %>
+            </p>
+            <p><strong>Email:</strong>
+                <%= order.email %>
+            </p>
+            <p><strong>Phone Number:</strong>
+                <%= order.number %>
+            </p>
+            <p><strong>Payment Method:</strong>
+                <%= order.method %>
+            </p>
+            <p><strong>Address:</strong>
+                <%= order.address %>
+            </p>
+            <p><strong>Products:</strong>
+                <%= order.totalProducts %>
+            </p>
+            <p><strong>Total Price:</strong> $<%= order.totalPrice.toLocaleString('en-US') %>
+            </p>
+            <p><strong>Status:</strong>
+                <%= order.paymentStatus %>
+            </p>
+            <p><strong>Date Placed:</strong>
+                <%= order.placedOn %>
+            </p>
+            <a href="/orders/orders" class="btn btn-primary mt-3">Back to Orders</a>
+        </div>
+        <% } else { %>
+            <p class="text-center">Order not found.</p>
+            <% } %>
+</div>

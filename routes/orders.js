@@ -3,9 +3,9 @@ const router = express.Router();
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
-const { body, validationResult } = require("express-validator"); // Add this import
+const { body, validationResult } = require("express-validator");
 
-// In routes/orders.js, replace the GET /orders route
+// GET /orders - View order history
 router.get("/orders", async (req, res) => {
   if (!req.session.userId) return res.redirect("/login");
   try {
@@ -29,6 +29,59 @@ router.get("/orders", async (req, res) => {
   }
 });
 
+// GET /orders/detail/:id - View order receipt
+router.get("/detail/:id", async (req, res) => {
+  if (!req.session.userId) return res.redirect("/login");
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.session.userId,
+    });
+    if (!order) {
+      req.session.message = ["Order not found"];
+      return res.redirect("/orders");
+    }
+    res.render("pages/order_detail", {
+      pageTitle: "Bookly - Order Receipt",
+      order,
+      user: res.locals.user,
+    });
+  } catch (err) {
+    console.error("Error fetching order detail:", err);
+    req.session.message = ["Error loading order details"];
+    res.redirect("/orders");
+  }
+});
+
+// GET /orders/cancel/:id - Cancel order
+router.get("/cancel/:id", async (req, res) => {
+  if (!req.session.userId) return res.redirect("/login");
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.session.userId,
+    });
+    if (!order) {
+      req.session.message = ["Order not found"];
+      return res.redirect("/orders");
+    }
+    if (order.paymentStatus !== "Pending") {
+      req.session.message = ["Only pending orders can be canceled"];
+      return res.redirect("/orders");
+    }
+
+    // Delete the order without affecting stock
+    await Order.findByIdAndDelete(req.params.id);
+    req.session.message = ["Order canceled successfully"];
+    res.redirect("/orders");
+  } catch (err) {
+    console.error("Error canceling order:", err);
+    req.session.message = ["Error canceling order"];
+    res.redirect("/orders");
+  }
+});
+
+// POST /orders - Place a new order
 router.post(
   "/orders",
   [
@@ -65,19 +118,20 @@ router.post(
         }
         products.push({ product: item.product._id, quantity: item.quantity });
         totalPrice += item.product.price * item.quantity;
-        await Product.updateOne(
-          { _id: item.product._id },
-          { $inc: { stockQuantity: -item.quantity } }
-        );
       }
       const order = new Order({
         user: req.session.userId,
-        products,
-        totalPrice,
+        name,
+        number,
+        email,
         method,
         address,
+        totalProducts: cartItems
+          .map((item) => `${item.product.bookName} (${item.quantity})`)
+          .join(", "),
+        totalPrice,
         placedOn: new Date().toLocaleDateString("en-GB"),
-        paymentStatus: "pending",
+        paymentStatus: "Pending",
       });
       await order.save();
       await Cart.deleteMany({ user: req.session.userId });

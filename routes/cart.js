@@ -186,10 +186,7 @@ router.post("/checkout", async (req, res) => {
       }
       cartProducts.push(`${product_name} (${product_quantity})`);
       cartTotal = product_price * product_quantity;
-      await Product.updateOne(
-        { _id: product_id },
-        { $inc: { stockQuantity: -parseInt(product_quantity) } }
-      );
+      // Removed stock update: await Product.updateOne({ _id: product_id }, { $inc: { stockQuantity: -parseInt(product_quantity) } });
     } else {
       const cartItems = await Cart.find({ user: req.session.userId }).populate(
         "product"
@@ -211,10 +208,7 @@ router.post("/checkout", async (req, res) => {
         }
         cartProducts.push(`${item.product.bookName} (${item.quantity})`);
         cartTotal += item.product.price * item.quantity;
-        await Product.updateOne(
-          { _id: item.product._id },
-          { $inc: { stockQuantity: -item.quantity } }
-        );
+        // Removed stock update: await Product.updateOne({ _id: item.product._id }, { $inc: { stockQuantity: -item.quantity } });
       }
       await Cart.deleteMany({ user: req.session.userId });
     }
@@ -231,6 +225,7 @@ router.post("/checkout", async (req, res) => {
       totalProducts,
       totalPrice: cartTotal,
       placedOn,
+      paymentStatus: "Pending", // Ensure paymentStatus is set
     });
     await order.save();
 

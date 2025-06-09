@@ -1,4 +1,3 @@
-<!-- In views/pages/cart.ejs -->
 <div class="bg-light py-4 mb-4">
     <div class="container">
         <h3 class="mb-1">Shopping cart</h3>
@@ -60,6 +59,9 @@
                                     </form>
                                     <div class="sub-total mb-2">Sub total: <span class="fw-bold">$<%= item.product ?
                                                 (item.quantity * item.product.price).toLocaleString() : '0' %></span>
+                                    </div>
+                                    <div class="text-muted">Available Stock: <%= item.product ?
+                                            item.product.stockQuantity : 'N/A' %>
                                     </div>
                                 </div>
                             </div>
