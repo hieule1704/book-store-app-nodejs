@@ -2,10 +2,13 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
+const passport = require("passport");
 
-// Login page
 router.get("/login", (req, res) => {
-  if (req.session.userId) {
+  if (
+    req.session.userId ||
+    (req.session.passport && req.session.passport.user)
+  ) {
     return res.redirect("/books/home");
   }
   res.render("pages/login", {
@@ -14,7 +17,6 @@ router.get("/login", (req, res) => {
   });
 });
 
-// Handle login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -35,7 +37,7 @@ router.post("/login", async (req, res) => {
     if (user.userType === "admin") {
       return res.redirect("/admin");
     } else {
-      return res.redirect("/books/home"); // Fixed redirect URL
+      return res.redirect("/books/home");
     }
   } catch (err) {
     console.error(err);
@@ -44,21 +46,22 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Logout
 router.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error(err);
-      return res.redirect("/books/home"); // Fixed redirect URL
+      return res.redirect("/books/home");
     }
     res.redirect("/login");
   });
 });
 
-// Register page
 router.get("/register", (req, res) => {
-  if (req.session.userId) {
-    return res.redirect("/books/home"); // Fixed redirect URL
+  if (
+    req.session.userId ||
+    (req.session.passport && req.session.passport.user)
+  ) {
+    return res.redirect("/books/home");
   }
   res.render("pages/register", {
     pageTitle: "Bookly - Register",
@@ -66,7 +69,6 @@ router.get("/register", (req, res) => {
   });
 });
 
-// Handle registration
 router.post("/register", async (req, res) => {
   const { name, email, password, cpassword } = req.body;
   try {
@@ -95,5 +97,28 @@ router.post("/register", async (req, res) => {
     res.redirect("/register");
   }
 });
+
+// Google OAuth routes
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  (req, res) => {
+    console.log("Callback success, user:", req.user);
+    req.session.userId = req.user._id;
+    req.session.userType = req.user.userType;
+    req.session.userName = req.user.name;
+    req.session.userEmail = req.user.email;
+    if (req.user.userType === "admin") {
+      res.redirect("/admin");
+    } else {
+      res.redirect("/books/home");
+    }
+  }
+);
 
 module.exports = router;
